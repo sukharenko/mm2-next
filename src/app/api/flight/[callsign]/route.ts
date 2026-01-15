@@ -98,6 +98,7 @@ export async function GET(
       status: flight.status || "Unknown",
       ident: flight.ident,
       aircraft_type: flight.aircraft_type,
+      operator: flight.operator || null,
     };
 
     // Cache the result

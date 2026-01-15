@@ -22,7 +22,7 @@ export function DetailedStat({
   extra?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col p-4 bg-white/5 backdrop-blur-sm border border-white/5 hover:bg-white/10 transition-colors">
+    <div className="flex flex-col p-3 bg-white/5 backdrop-blur-sm border border-white/5 hover:bg-white/10 transition-colors">
       <span className="text-[10px] text-white/30 uppercase tracking-widest font-bold mb-1">
         {label}
       </span>
@@ -89,6 +89,7 @@ export function AircraftDetailPanel({
       actual_in?: string | null;
     };
     status?: string;
+    operator?: string | null;
   } | null>(null);
   const [routeLoading, setRouteLoading] = useState(false);
 
@@ -153,6 +154,7 @@ export function AircraftDetailPanel({
                 destination: data.destination,
                 times: data.times,
                 status: data.status,
+                operator: data.operator,
               });
             }
           })
