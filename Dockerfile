@@ -15,12 +15,6 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Next.js requires these at build time
-ARG NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
-ARG NEXT_PUBLIC_LOCATION
-ENV NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=$NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
-ENV NEXT_PUBLIC_LOCATION=$NEXT_PUBLIC_LOCATION
-
 # Build Next.js application (Turbo disabled via next.config.ts)
 RUN npm run build
 

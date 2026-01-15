@@ -8,8 +8,7 @@ import {
 } from "@vis.gl/react-google-maps";
 import { useCallback, useEffect, useState } from "react";
 import { HomeMarker } from "./HomeMarker";
-
-const MAP_API_KEY = process.env.NEXT_PUBLIC_MAPS_API_KEY || "";
+import { useConfig } from "@/hooks/useConfig";
 
 const mapStyles = [
   {
@@ -113,23 +112,35 @@ export function MapContainer({
   children?: React.ReactNode;
   focusedLocation?: { lat: number; lng: number } | null;
 }) {
+  const { config, loading } = useConfig();
   const [zoom, setZoom] = useState(10);
-  const [center, setCenter] = useState(() => {
-    const loc = process.env.NEXT_PUBLIC_LOCATION;
-    if (loc) {
-      const [lat, lng] = loc.split(":").map(Number);
-      if (!isNaN(lat) && !isNaN(lng)) return { lat, lng };
+  const [center, setCenter] = useState({ lat: 0, lng: 0 });
+
+  // Update center when config loads
+  useEffect(() => {
+    if (config?.location) {
+      const [lat, lng] = config.location.split(":").map(Number);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        setCenter({ lat, lng });
+      }
     }
-    return { lat: 55.75, lng: 37.61 };
-  });
+  }, [config]);
 
   const onCameraChanged = useCallback((ev: MapCameraChangedEvent) => {
     // console.log("camera changed", ev);
   }, []);
 
+  if (loading || !config) {
+    return (
+      <div className="w-full h-screen bg-slate-900 flex items-center justify-center text-white">
+        Loading map...
+      </div>
+    );
+  }
+
   return (
     <div className="w-full h-screen absolute top-0 left-0 z-0">
-      <APIProvider apiKey={MAP_API_KEY}>
+      <APIProvider apiKey={config.googleMapsApiKey}>
         <Map
           defaultCenter={center}
           defaultZoom={zoom}

@@ -100,8 +100,8 @@ ModeSMixer2 has been the go-to solution for ADS-B tracking for years, but let's 
    Edit `.env` with your settings:
 
    ```env
-   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
-   NEXT_PUBLIC_LOCATION=27.2579:33.8116      # Your receiver location (lat:lon)
+   GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+   LOCATION=27.2579:33.8116      # Your receiver location (lat:lon)
    DUMP1090_HOST=192.168.3.7                  # Your dump1090 host
    DUMP1090_JSON_PORT=8080                    # dump1090 JSON API port
    FLIGHTAWARE_API_KEY=your_flightaware_key   # Optional, but recommended
@@ -132,8 +132,8 @@ The easiest way to run MM2-Next is using Docker:
    Required settings:
 
    ```env
-   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
-   NEXT_PUBLIC_LOCATION=27.2579:33.8116
+   GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+   LOCATION=27.2579:33.8116
    DUMP1090_HOST=192.168.3.7
    DUMP1090_JSON_PORT=8080
    FLIGHTAWARE_API_KEY=your_flightaware_key  # Optional
@@ -165,7 +165,7 @@ The easiest way to run MM2-Next is using Docker:
 **Using pre-built image from Docker Hub:**
 
 ```bash
-docker pull ysukharenko/mm2-next:latest
+docker pull docker.io/ysukharenko/mm2-next:latest
 ```
 
 The Docker image supports multiple platforms:
@@ -188,11 +188,8 @@ Docker images are automatically built and published via GitHub Actions on every 
 **Manual build (for development):**
 
 ```bash
-# Local build for testing (requires dummy build args)
-docker build \
-  --build-arg NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=placeholder \
-  --build-arg NEXT_PUBLIC_LOCATION=0:0 \
-  -t mm2-next .
+# Local build for testing
+docker build -t mm2-next .
 
 # Multi-platform build (requires buildx)
 ./build-docker.sh v1.0.0

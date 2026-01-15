@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MapContainer } from "@/components/Map/MapContainer";
 import { AircraftMarker } from "@/components/Map/AircraftMarker";
 import { RangeRings } from "@/components/Map/RangeRings";
@@ -17,22 +17,27 @@ import {
 } from "lucide-react";
 import clsx from "clsx";
 import { SettingsProvider, useSettings } from "@/contexts/SettingsContext";
+import { useConfig } from "@/hooks/useConfig";
 
 function AppContent() {
   const { aircraft, isConnected } = useAircraft();
   const planes = Object.values(aircraft);
   const { units, setUnits, formatAltitude, formatSpeed } = useSettings();
   const [showSettings, setShowSettings] = useState(false);
+  const { config } = useConfig();
 
   // Parse location for rings
-  const [stationPos] = useState(() => {
-    const loc = process.env.NEXT_PUBLIC_LOCATION;
-    if (loc) {
-      const [lat, lng] = loc.split(":").map(Number);
-      if (!isNaN(lat) && !isNaN(lng)) return { lat, lng };
+  const [stationPos, setStationPos] = useState({ lat: 0, lng: 0 });
+
+  // Update station position when config loads
+  useEffect(() => {
+    if (config?.location) {
+      const [lat, lng] = config.location.split(":").map(Number);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        setStationPos({ lat, lng });
+      }
     }
-    return { lat: 55.75, lng: 37.61 };
-  });
+  }, [config]);
 
   const [selectedPlane, setSelectedPlane] = useState<Aircraft | null>(null);
   const [focusedLocation, setFocusedLocation] = useState<{
