@@ -706,6 +706,14 @@ export function AircraftDetailPanel({
         {/* Main Stats Grid */}
         <div className="grid grid-cols-2 gap-px bg-white/10 border-b border-white/10">
           <DetailedStat
+            label="LATITUDE"
+            value={aircraft.lat ? aircraft.lat.toFixed(4) : "---"}
+          />
+          <DetailedStat
+            label="LONGITUDE"
+            value={aircraft.lon ? aircraft.lon.toFixed(4) : "---"}
+          />
+          <DetailedStat
             label="ALTITUDE"
             value={
               aircraft.altitude ? formatAltitude(aircraft.altitude) : "---"
