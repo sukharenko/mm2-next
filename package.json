@@ -1,12 +1,13 @@
 {
   "name": "mm2-next",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "scripts": {
     "dev": "ts-node server.ts",
     "build": "next build",
+    "docker-build": "next build --no-turbo",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "next lint"
   },
   "dependencies": {
     "@types/google.maps": "^3.58.1",
