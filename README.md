@@ -55,10 +55,15 @@ ModeSMixer2 has been the go-to solution for ADS-B tracking for years, but let's 
 
 ### Prerequisites
 
-1. **dump1090** running and accessible on your network
+1. **dump1090 or compatible decoder** running and accessible on your network
 
    - Must have JSON API enabled (port 8080)
-   - Can be dump1090-fa, dump1090-mutability, or readsb
+   - Supported decoders:
+     - **dump1090-fa** (FlightAware)
+     - **dump1090-mutability**
+     - **readsb**
+     - **fr24feed** (FlightRadar24's dump1090)
+   - If you're already feeding FlightRadar24, you're all set!
 
 2. **Google Maps API Key**
 
