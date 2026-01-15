@@ -5,7 +5,7 @@ import fetch from "node-fetch";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
-const port = 8081;
+const port = 8082;
 
 const app = next({ dev, hostname, port });
 const handler = app.getRequestHandler();
@@ -86,7 +86,6 @@ app.prepare().then(() => {
   }, 1000);
 
   io.on("connection", (socket) => {
-    console.log("Client connected");
     // Send immediate state on connection
     fetch(dumpUrl)
       .then((res: any) => res.json())
