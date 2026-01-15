@@ -90,6 +90,8 @@ export function AircraftDetailPanel({
     };
     status?: string;
     operator?: string | null;
+    codeshares?: string[];
+    codeshares_iata?: string[];
   } | null>(null);
   const [routeLoading, setRouteLoading] = useState(false);
 
@@ -155,6 +157,8 @@ export function AircraftDetailPanel({
                 times: data.times,
                 status: data.status,
                 operator: data.operator,
+                codeshares: data.codeshares,
+                codeshares_iata: data.codeshares_iata,
               });
             }
           })
@@ -288,6 +292,27 @@ export function AircraftDetailPanel({
             {basicData?.airline && (
               <div className="mt-1 text-sm text-white/70 font-medium truncate max-w-[200px]">
                 {basicData.airline}
+              </div>
+            )}
+            {/* Codeshares */}
+            {flightRoute?.codeshares && flightRoute.codeshares.length > 0 && (
+              <div className="mt-1 flex flex-wrap items-center gap-1">
+                <span className="text-[9px] text-white/30 uppercase tracking-wider">
+                  Codeshares:
+                </span>
+                {flightRoute.codeshares.slice(0, 3).map((code, idx) => (
+                  <span
+                    key={idx}
+                    className="text-[10px] font-mono text-sky-400/70 bg-sky-500/10 px-1.5 py-0.5 rounded border border-sky-500/20"
+                  >
+                    {code}
+                  </span>
+                ))}
+                {flightRoute.codeshares.length > 3 && (
+                  <span className="text-[9px] text-white/30">
+                    +{flightRoute.codeshares.length - 3} more
+                  </span>
+                )}
               </div>
             )}
           </div>

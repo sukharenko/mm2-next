@@ -99,6 +99,8 @@ export async function GET(
       ident: flight.ident,
       aircraft_type: flight.aircraft_type,
       operator: flight.operator || null,
+      codeshares: flight.codeshares || [],
+      codeshares_iata: flight.codeshares_iata || [],
     };
 
     // Cache the result
