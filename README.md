@@ -1,8 +1,10 @@
 # ✈️ MM2-Next
 
+![Build Status](https://github.com/sukharenko/mm2-next/actions/workflows/docker-build.yml/badge.svg)
+
 A modern, beautiful web interface for ADS-B aircraft tracking - built to replace the outdated ModeSMixer2 interface.
 
-![MM2-Next Screenshot](https://via.placeholder.com/800x450/1e293b/38bdf8?text=MM2-Next+Screenshot)
+![MM2-Next Screenshot](./public/screenshot-01.png)
 
 ## 🎯 Motivation
 
