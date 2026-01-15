@@ -22,7 +22,7 @@ export function DetailedStat({
   extra?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col p-3 bg-white/5 backdrop-blur-sm border border-white/5 hover:bg-white/10 transition-colors">
+    <div className="flex flex-col px-3 py-1 bg-white/5 backdrop-blur-sm border border-white/5 hover:bg-white/10 transition-colors">
       <span className="text-[10px] text-white/30 uppercase tracking-widest font-bold mb-1">
         {label}
       </span>
@@ -301,25 +301,39 @@ export function AircraftDetailPanel({
                 )}
               </div>
               <div className="flex flex-col">
-                <h2 className="text-1xl font-bold text-sky-400 font-mono tracking-tight leading-none">
+                {/* Registration or Callsign/Hex as main title */}
+                <h2
+                  className="text-1xl font-bold text-sky-400 font-mono tracking-tight leading-none"
+                  title={basicData?.reg ? "Registration" : "Callsign"}
+                >
                   {basicData?.reg || aircraft.callsign || aircraft.hex}
                 </h2>
+                {/* Show callsign below if we have reg and callsign is different */}
                 <div className="flex items-center gap-2 mt-2">
-                  <span className="text-xs font-mono text-white/50 bg-white/5 px-1.5 py-0.5 rounded border border-white/5">
-                    {aircraft.hex}
-                  </span>
-                  {aircraft.squawk && (
-                    <span className="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
-                      SQK {aircraft.squawk}
-                    </span>
-                  )}
                   {basicData?.reg &&
                     aircraft.callsign &&
                     aircraft.callsign !== basicData.reg && (
-                      <span className="text-sm font-mono text-white/50 font-bold tracking-wider">
+                      <span
+                        className="text-xs font-mono text-sky-400 bg-sky-500/10 px-1.5 py-0.5 rounded border border-sky-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)]"
+                        title="Callsign"
+                      >
                         {aircraft.callsign}
                       </span>
                     )}
+                  {aircraft.squawk && (
+                    <span
+                      className="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)]"
+                      title="Squawk"
+                    >
+                      SQK {aircraft.squawk}
+                    </span>
+                  )}
+                  <span
+                    className="text-xs font-mono text-white/50 bg-white/5 px-1.5 py-0.5 rounded border border-white/5"
+                    title="Hex"
+                  >
+                    {aircraft.hex}
+                  </span>
                 </div>
               </div>
             </div>
@@ -660,7 +674,7 @@ export function AircraftDetailPanel({
 
         {/* Route / External Links */}
         {(aircraft.callsign || basicData?.reg) && (
-          <div className="flex items-center gap-2 p-3 border-b border-white/10 bg-white/5 overflow-x-auto scrollbar-none">
+          <div className="flex items-center gap-2 px-3 py-2 border-b border-white/10 bg-white/5 overflow-x-auto scrollbar-none">
             <span className="text-[10px] uppercase tracking-widest text-white/30 font-bold shrink-0">
               Route Info:
             </span>
