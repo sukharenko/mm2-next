@@ -73,8 +73,11 @@ ModeSMixer2 has been the go-to solution for ADS-B tracking for years, but let's 
    - Enable Maps JavaScript API
 
 3. **FlightAware AeroAPI Key** (optional but recommended)
-   - Sign up at [FlightAware AeroAPI](https://www.flightaware.com/commercial/aeroapi/)
-   - Free tier available for personal use
+   - Sign up at [FlightAware AeroAPI](https://www.flightaware.com/aeroapi/portal/)
+   - Requires credit card for registration
+   - Free tier: $5/month credit (no charge for usage within limit)
+   - Pricing: $0.005 per flight query (~1000 free queries/month)
+   - Usage above free tier will be billed to your card
 
 ### Installation
 
