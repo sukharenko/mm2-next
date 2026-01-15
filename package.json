@@ -1,11 +1,10 @@
 {
   "name": "mm2-next",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "private": true,
   "scripts": {
     "dev": "ts-node server.ts",
     "build": "next build",
-    "docker-build": "TURBOPACK=0 next build",
     "start": "next start",
     "lint": "next lint"
   },

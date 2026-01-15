@@ -170,7 +170,9 @@ The Docker image supports multiple platforms:
 
 - `linux/amd64` - x86_64 (Regular PCs, Intel/AMD)
 - `linux/arm64` - ARM64 (Raspberry Pi 4/5, Apple Silicon)
-- `linux/arm/v7` - ARMv7 (Raspberry Pi 3)
+- `linux/arm/v7` - ARMv7 (Raspberry Pi 3) - **Not supported** due to Next.js 16 Turbopack limitations
+
+**Note for Raspberry Pi 3 users:** Next.js 16 requires Turbopack which doesn't support ARM v7 architecture. Please use Raspberry Pi 4 or newer, or run the application directly with Node.js instead of Docker.
 
 Docker will automatically pull the correct image for your platform.
 

@@ -21,8 +21,8 @@ ARG NEXT_PUBLIC_LOCATION
 ENV NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=$NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 ENV NEXT_PUBLIC_LOCATION=$NEXT_PUBLIC_LOCATION
 
-# Build Next.js application (disable Turbo for ARM v7 compatibility)
-RUN npm run docker-build
+# Build Next.js application (Turbo disabled via next.config.ts)
+RUN npm run build
 
 # Production image, copy all the files and run next
 FROM base AS runner
