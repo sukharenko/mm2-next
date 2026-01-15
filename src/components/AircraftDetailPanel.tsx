@@ -327,6 +327,69 @@ export function AircraftDetailPanel({
               </div>
             )}
 
+            {/* Flight Progress Bar */}
+            {flightRoute.times &&
+              (flightRoute.times.actual_out ||
+                flightRoute.times.estimated_out ||
+                flightRoute.times.scheduled_out) &&
+              (flightRoute.times.actual_in ||
+                flightRoute.times.estimated_in ||
+                flightRoute.times.scheduled_in) &&
+              (() => {
+                const departureTime = new Date(
+                  flightRoute.times.actual_out ||
+                    flightRoute.times.estimated_out ||
+                    flightRoute.times.scheduled_out!
+                ).getTime();
+                const arrivalTime = new Date(
+                  flightRoute.times.estimated_in ||
+                    flightRoute.times.actual_in ||
+                    flightRoute.times.scheduled_in!
+                ).getTime();
+                const currentTime = Date.now();
+
+                const totalDuration = arrivalTime - departureTime;
+                const elapsed = currentTime - departureTime;
+                const remaining = arrivalTime - currentTime;
+
+                const progress = Math.min(
+                  Math.max((elapsed / totalDuration) * 100, 0),
+                  100
+                );
+
+                const formatDuration = (ms: number) => {
+                  const hours = Math.floor(Math.abs(ms) / (1000 * 60 * 60));
+                  const minutes = Math.floor(
+                    (Math.abs(ms) % (1000 * 60 * 60)) / (1000 * 60)
+                  );
+                  return `${hours}h ${minutes}m`;
+                };
+
+                return (
+                  <div className="px-4 pb-3">
+                    <div className="flex items-center justify-between text-[9px] text-white/40 mb-1.5">
+                      <span>{formatDuration(elapsed)} elapsed</span>
+                      <span className="text-white/60 font-bold">
+                        {formatDuration(totalDuration)} total
+                      </span>
+                      <span>{formatDuration(remaining)} remaining</span>
+                    </div>
+                    <div className="relative h-2 bg-white/5 rounded-full overflow-hidden">
+                      <div
+                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-500 to-sky-500 rounded-full transition-all duration-1000"
+                        style={{ width: `${progress}%` }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse" />
+                    </div>
+                    <div className="flex items-center justify-center mt-1">
+                      <span className="text-[8px] text-white/30 font-mono">
+                        {Math.round(progress)}% complete
+                      </span>
+                    </div>
+                  </div>
+                );
+              })()}
+
             {/* Route */}
             <div className="px-4 py-3 flex items-start justify-between gap-4">
               {/* Origin */}
