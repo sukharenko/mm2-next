@@ -483,23 +483,21 @@ export function AircraftDetailPanel({
                   <span className="text-sm font-mono font-bold text-emerald-400">
                     {flightRoute.origin.iata}
                   </span>
-                  <span className="text-[9px] text-white/40 leading-tight max-w-[140px]">
-                    {flightRoute.origin.city || flightRoute.origin.name}
-                  </span>
-                  {(flightRoute.origin.gate || flightRoute.origin.terminal) && (
-                    <div className="flex gap-1 mt-0.5">
-                      {flightRoute.origin.terminal && (
-                        <span className="text-[8px] bg-white/5 text-white/50 px-1 py-0.5 rounded">
-                          T{flightRoute.origin.terminal}
-                        </span>
-                      )}
-                      {flightRoute.origin.gate && (
-                        <span className="text-[8px] bg-emerald-500/10 text-emerald-400 px-1 py-0.5 rounded">
-                          Gate {flightRoute.origin.gate}
-                        </span>
-                      )}
-                    </div>
-                  )}
+                  <div className="flex items-center gap-1 flex-wrap min-h-[20px]">
+                    <span className="text-[9px] text-white/40 leading-tight">
+                      {flightRoute.origin.city || flightRoute.origin.name}
+                    </span>
+                    {flightRoute.origin.terminal && (
+                      <span className="text-[8px] bg-white/5 text-white/50 px-1 py-0.5 rounded">
+                        T{flightRoute.origin.terminal}
+                      </span>
+                    )}
+                    {flightRoute.origin.gate && (
+                      <span className="text-[8px] bg-emerald-500/10 text-emerald-400 px-1 py-0.5 rounded">
+                        G{flightRoute.origin.gate}
+                      </span>
+                    )}
+                  </div>
                   {/* Departure Time */}
                   {flightRoute.times && (
                     <div className="text-[9px] text-white/50 mt-1 flex flex-col gap-0.5">
@@ -572,31 +570,27 @@ export function AircraftDetailPanel({
                   <span className="text-sm font-mono font-bold text-sky-400">
                     {flightRoute.destination.iata}
                   </span>
-                  <span className="text-[9px] text-white/40 leading-tight max-w-[140px] text-right">
-                    {flightRoute.destination.city ||
-                      flightRoute.destination.name}
-                  </span>
-                  {(flightRoute.destination.gate ||
-                    flightRoute.destination.terminal ||
-                    flightRoute.destination.baggage_claim) && (
-                    <div className="flex gap-1 mt-0.5">
-                      {flightRoute.destination.terminal && (
-                        <span className="text-[8px] bg-white/5 text-white/50 px-1 py-0.5 rounded">
-                          T{flightRoute.destination.terminal}
-                        </span>
-                      )}
-                      {flightRoute.destination.gate && (
-                        <span className="text-[8px] bg-sky-500/10 text-sky-400 px-1 py-0.5 rounded">
-                          Gate {flightRoute.destination.gate}
-                        </span>
-                      )}
-                      {flightRoute.destination.baggage_claim && (
-                        <span className="text-[8px] bg-amber-500/10 text-amber-400 px-1 py-0.5 rounded">
-                          🎒 {flightRoute.destination.baggage_claim}
-                        </span>
-                      )}
-                    </div>
-                  )}
+                  <div className="flex items-center gap-1 flex-wrap justify-end min-h-[20px]">
+                    {flightRoute.destination.terminal && (
+                      <span className="text-[8px] bg-white/5 text-white/50 px-1 py-0.5 rounded">
+                        T{flightRoute.destination.terminal}
+                      </span>
+                    )}
+                    {flightRoute.destination.gate && (
+                      <span className="text-[8px] bg-sky-500/10 text-sky-400 px-1 py-0.5 rounded">
+                        G{flightRoute.destination.gate}
+                      </span>
+                    )}
+                    {flightRoute.destination.baggage_claim && (
+                      <span className="text-[8px] bg-amber-500/10 text-amber-400 px-1 py-0.5 rounded">
+                        🎒{flightRoute.destination.baggage_claim}
+                      </span>
+                    )}
+                    <span className="text-[9px] text-white/40 leading-tight text-right">
+                      {flightRoute.destination.city ||
+                        flightRoute.destination.name}
+                    </span>
+                  </div>
                   {/* Arrival Time */}
                   {flightRoute.times && (
                     <div className="text-[9px] text-white/50 mt-1 flex flex-col gap-0.5 items-end">
