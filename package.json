@@ -1,6 +1,6 @@
 {
   "name": "mm2-next",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "private": true,
   "scripts": {
     "dev": "ts-node server.ts",
@@ -16,11 +16,11 @@
     "lucide-react": "^0.562.0",
     "mode-s-aircraft-store": "^1.0.1",
     "mode-s-decoder": "^1.0.1",
-    "next": "16.1.2",
+    "next": "15.1.6",
     "node-cache": "^5.1.2",
     "node-fetch": "^2.7.0",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "socket.io": "^4.8.3",
     "socket.io-client": "^4.8.3",
     "tailwind-merge": "^3.4.0"
@@ -32,7 +32,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.1.2",
+    "eslint-config-next": "15.1.6",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
     "typescript": "^5"

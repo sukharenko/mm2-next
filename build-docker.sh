@@ -21,7 +21,7 @@ docker buildx use mm2-builder
 # Build and push for multiple platforms
 echo "Building and pushing..."
 docker buildx build \
-    --platform linux/amd64,linux/arm64 \
+    --platform linux/amd64,linux/arm64,linux/arm/v7 \
     --tag ${IMAGE_NAME}:${VERSION} \
     --tag ${IMAGE_NAME}:latest \
     --push \
@@ -36,7 +36,7 @@ if [ $? -eq 0 ]; then
     echo "Supported platforms:"
     echo "   ✓ linux/amd64 (x86_64 - Regular PCs)"
     echo "   ✓ linux/arm64 (ARM64 - Raspberry Pi 4/5, Apple Silicon)"
-    echo "   ✗ linux/arm/v7 (ARMv7 - Not supported: Next.js 16 Turbopack incompatible)"
+    echo "   ✓ linux/arm/v7 (ARMv7 - Raspberry Pi 3 - via Next.js 15)"
     echo ""
     echo "Users can pull with: docker pull ${IMAGE_NAME}:${VERSION}"
 else
