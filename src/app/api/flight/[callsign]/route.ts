@@ -1,3 +1,5 @@
+// https://www.flightaware.com/aeroapi/portal/documentation#get-/flights/-id-/track
+
 import { NextRequest, NextResponse } from "next/server";
 import NodeCache from "node-cache";
 
