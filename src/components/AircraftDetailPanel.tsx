@@ -94,6 +94,7 @@ export function AircraftDetailPanel({
     codeshares_iata?: string[];
   } | null>(null);
   const [routeLoading, setRouteLoading] = useState(false);
+  const [airlineLogo, setAirlineLogo] = useState<string | null>(null);
 
   // Reset state when aircraft changes
   useEffect(() => {
@@ -167,6 +168,24 @@ export function AircraftDetailPanel({
       }
     }
   }, [aircraft?.hex, aircraft?.callsign]);
+
+  // Fetch airline logo when operator changes
+  useEffect(() => {
+    if (flightRoute?.operator && aircraft?.callsign) {
+      // Extract ICAO code from callsign (first 3 letters)
+      const icaoCode = aircraft.callsign.substring(0, 3).toUpperCase();
+      if (icaoCode) {
+        const logoUrl = `/airline-logos/${icaoCode}.png`;
+        // Test if logo exists
+        const img = new Image();
+        img.onload = () => setAirlineLogo(logoUrl);
+        img.onerror = () => setAirlineLogo(null);
+        img.src = logoUrl;
+      }
+    } else {
+      setAirlineLogo(null);
+    }
+  }, [flightRoute?.operator, aircraft?.callsign]);
 
   if (!aircraft) return null;
 
@@ -255,8 +274,16 @@ export function AircraftDetailPanel({
       <Lightbox />
       <div className="absolute top-24 right-4 w-96 bg-black/60 backdrop-blur-xl rounded-2xl border border-white/10 flex flex-col overflow-hidden shadow-2xl z-20 animate-in slide-in-from-right fade-in duration-300 ring-1 ring-white/10">
         {/* Header */}
-        <div className="p-5 border-b border-white/10 flex justify-between items-start bg-gradient-to-r from-sky-900/20 to-transparent">
-          <div>
+        <div className="p-5 border-b border-white/10 bg-gradient-to-r from-sky-900/20 to-transparent relative">
+          {/* Close button - absolute positioned */}
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 p-2 hover:bg-white/10 rounded-full transition-colors text-white/60 hover:text-white z-10"
+          >
+            <X size={20} />
+          </button>
+
+          <div className="pr-0">
             <div className="flex items-center gap-2 mb-1">
               <span className="text-2xl" title={displayCountry}>
                 {displayFlag}
@@ -265,35 +292,54 @@ export function AircraftDetailPanel({
                 <h2 className="text-3xl font-bold text-sky-400 font-mono tracking-tight leading-none">
                   {basicData?.reg || aircraft.callsign || aircraft.hex}
                 </h2>
-                {basicData?.reg &&
-                  aircraft.callsign &&
-                  aircraft.callsign !== basicData.reg && (
-                    <span className="text-sm font-mono text-white/50 font-bold tracking-wider">
-                      {aircraft.callsign}
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-xs font-mono text-white/50 bg-white/5 px-1.5 py-0.5 rounded border border-white/5">
+                    {aircraft.hex}
+                  </span>
+                  {aircraft.squawk && (
+                    <span className="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
+                      SQK {aircraft.squawk}
                     </span>
                   )}
+                  {basicData?.reg &&
+                    aircraft.callsign &&
+                    aircraft.callsign !== basicData.reg && (
+                      <span className="text-sm font-mono text-white/50 font-bold tracking-wider">
+                        {aircraft.callsign}
+                      </span>
+                    )}
+                </div>
               </div>
             </div>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-xs font-mono text-white/50 bg-white/5 px-1.5 py-0.5 rounded border border-white/5">
-                {aircraft.hex}
-              </span>
-              {aircraft.squawk && (
-                <span className="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
-                  SQK {aircraft.squawk}
-                </span>
-              )}
-              {displayCountry !== "Unknown" && (
-                <span className="text-[10px] text-white/40 uppercase tracking-wider font-semibold">
-                  {displayCountry}
-                </span>
+
+            {/* Airline name and country with logo */}
+            <div className="flex items-center justify-between gap-3 mt-1">
+              <div className="flex flex-col gap-0.5">
+                {basicData?.airline && (
+                  <div className="text-sm text-white/70 font-medium truncate max-w-[200px]">
+                    {basicData.airline}
+                  </div>
+                )}
+                {displayCountry !== "Unknown" && (
+                  <span className="text-[10px] text-white/40 uppercase tracking-wider font-semibold">
+                    {displayCountry}
+                  </span>
+                )}
+              </div>
+
+              {/* Airline Logo */}
+              {airlineLogo && (
+                <div className="flex-shrink-0">
+                  <img
+                    src={airlineLogo}
+                    alt="Airline logo"
+                    className="h-10 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity"
+                    onError={() => setAirlineLogo(null)}
+                  />
+                </div>
               )}
             </div>
-            {basicData?.airline && (
-              <div className="mt-1 text-sm text-white/70 font-medium truncate max-w-[200px]">
-                {basicData.airline}
-              </div>
-            )}
+
             {/* Codeshares */}
             {flightRoute?.codeshares && flightRoute.codeshares.length > 0 && (
               <div className="mt-1 flex flex-wrap items-center gap-1">
@@ -316,12 +362,6 @@ export function AircraftDetailPanel({
               </div>
             )}
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-white/10 rounded-full transition-colors text-white/60 hover:text-white"
-          >
-            <X size={20} />
-          </button>
         </div>
 
         {/* Flight Route Display */}
