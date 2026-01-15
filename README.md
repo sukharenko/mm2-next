@@ -184,8 +184,11 @@ Docker images are automatically built and published via GitHub Actions on every 
 **Manual build (for development):**
 
 ```bash
-# Local build for testing
-docker build -t mm2-next .
+# Local build for testing (requires dummy build args)
+docker build \
+  --build-arg NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=placeholder \
+  --build-arg NEXT_PUBLIC_LOCATION=0:0 \
+  -t mm2-next .
 
 # Multi-platform build (requires buildx)
 ./build-docker.sh v1.0.0
