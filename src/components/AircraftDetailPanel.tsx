@@ -1,4 +1,4 @@
-import { X, ArrowUp, ArrowDown, Plane, MapPin } from "lucide-react";
+import { X, MapPin, ArrowUp, ArrowDown, Plane } from "lucide-react";
 import { Aircraft } from "@/hooks/useAircraft";
 import { getCountryFromHex, getFlagEmoji } from "@/utils/icao";
 import { useState, useEffect } from "react";
@@ -285,26 +285,26 @@ export function AircraftDetailPanel({
 
           <div className="pr-0">
             <div className="flex items-center gap-2 mb-1">
-              {/* Airline Logo or Flag */}
-              {airlineLogo ? (
-                <div className="w-12 h-12 flex items-center justify-center">
+              {/* Airline Logo or Airplane Placeholder */}
+              <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
+                {airlineLogo ? (
                   <img
                     src={airlineLogo}
                     alt="Airline logo"
                     className="max-w-full max-h-full object-contain opacity-90"
                     onError={() => setAirlineLogo(null)}
                   />
-                </div>
-              ) : (
-                <span className="text-3xl" title={displayCountry}>
-                  {displayFlag}
-                </span>
-              )}
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-sky-500/20 to-sky-600/20 rounded-lg border border-sky-500/30">
+                    <Plane className="text-sky-400/60" size={28} />
+                  </div>
+                )}
+              </div>
               <div className="flex flex-col">
-                <h2 className="text-3xl font-bold text-sky-400 font-mono tracking-tight leading-none">
+                <h2 className="text-1xl font-bold text-sky-400 font-mono tracking-tight leading-none">
                   {basicData?.reg || aircraft.callsign || aircraft.hex}
                 </h2>
-                <div className="flex items-center gap-2 mt-1">
+                <div className="flex items-center gap-2 mt-2">
                   <span className="text-xs font-mono text-white/50 bg-white/5 px-1.5 py-0.5 rounded border border-white/5">
                     {aircraft.hex}
                   </span>
@@ -325,7 +325,7 @@ export function AircraftDetailPanel({
             </div>
 
             {/* Airline name and country */}
-            <div className="flex flex-col gap-0.5 mt-1">
+            <div className="flex flex-col gap-0.5 mt-3">
               {basicData?.airline && (
                 <div className="text-sm text-white/70 font-medium">
                   {basicData.airline}
