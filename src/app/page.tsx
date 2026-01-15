@@ -45,6 +45,13 @@ function AppContent() {
     lng: number;
   } | null>(null);
 
+  // Update selectedPlane when aircraft data changes
+  useEffect(() => {
+    if (selectedPlane && aircraft[selectedPlane.hex]) {
+      setSelectedPlane(aircraft[selectedPlane.hex]);
+    }
+  }, [aircraft, selectedPlane]);
+
   const handlePlaneClick = (plane: Aircraft) => {
     setSelectedPlane(plane);
     if (plane.lat && plane.lon) {
