@@ -7,6 +7,7 @@ import {
   useMap,
 } from "@vis.gl/react-google-maps";
 import { useCallback, useEffect, useState } from "react";
+import { HomeMarker } from "./HomeMarker";
 
 const MAP_API_KEY = process.env.NEXT_PUBLIC_MAPS_API_KEY || "";
 
@@ -155,6 +156,7 @@ export function MapContainer({
             }
           `}</style>
           <MapUpdater center={focusedLocation} />
+          <HomeMarker position={center} />
           {children}
         </Map>
       </APIProvider>
