@@ -1,9 +1,8 @@
 # Multi-stage build for optimized image size
-FROM node:22-alpine AS base
+FROM node:22-slim AS base
 
 # Install dependencies only when needed
 FROM base AS deps
-RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Copy package files
@@ -22,8 +21,8 @@ ARG NEXT_PUBLIC_LOCATION
 ENV NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=$NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 ENV NEXT_PUBLIC_LOCATION=$NEXT_PUBLIC_LOCATION
 
-# Build Next.js application (without turbo for Alpine compatibility)
-RUN npm run docker-build
+# Build Next.js application
+RUN npm run build
 
 # Production image, copy all the files and run next
 FROM base AS runner
@@ -31,8 +30,8 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
 
 # Copy built application
 COPY --from=builder /app/public ./public
