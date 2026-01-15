@@ -272,7 +272,7 @@ export function AircraftDetailPanel({
   return (
     <>
       <Lightbox />
-      <div className="absolute top-24 right-4 w-96 bg-black/60 backdrop-blur-xl rounded-2xl border border-white/10 flex flex-col overflow-hidden shadow-2xl z-20 animate-in slide-in-from-right fade-in duration-300 ring-1 ring-white/10">
+      <div className="absolute top-24 right-4 w-96 max-h-[calc(100vh-7rem)] overflow-y-auto bg-black/60 backdrop-blur-xl rounded-2xl border border-white/10 flex flex-col shadow-2xl z-20 animate-in slide-in-from-right fade-in duration-300 ring-1 ring-white/10 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
         {/* Header */}
         <div className="p-5 border-b border-white/10 bg-gradient-to-r from-sky-900/20 to-transparent relative">
           {/* Close button - absolute positioned */}
