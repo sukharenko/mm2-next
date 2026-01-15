@@ -111,6 +111,74 @@ ModeSMixer2 has been the go-to solution for ADS-B tracking for years, but let's 
    http://localhost:8082
    ```
 
+### Docker Deployment (Recommended)
+
+The easiest way to run MM2-Next is using Docker:
+
+1. **Edit environment file**
+
+   ```bash
+   # Edit .env.docker with your settings
+   nano .env.docker
+   ```
+
+   Required settings:
+
+   ```env
+   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+   NEXT_PUBLIC_LOCATION=27.2579:33.8116
+   DUMP1090_HOST=192.168.3.7
+   DUMP1090_JSON_PORT=8080
+   FLIGHTAWARE_API_KEY=your_flightaware_key  # Optional
+   ```
+
+2. **Run with Docker Compose**
+
+   ```bash
+   docker-compose up -d
+   ```
+
+3. **Access the application**
+
+   ```
+   http://localhost:8082
+   ```
+
+4. **View logs**
+
+   ```bash
+   docker-compose logs -f
+   ```
+
+5. **Stop the application**
+   ```bash
+   docker-compose down
+   ```
+
+**Using pre-built image from Docker Hub:**
+
+```bash
+docker pull ysukharenko/mm2-next:latest
+```
+
+The Docker image supports multiple platforms:
+
+- `linux/amd64` - x86_64 (Regular PCs, Intel/AMD)
+- `linux/arm64` - ARM64 (Raspberry Pi 4/5, Apple Silicon)
+- `linux/arm/v7` - ARMv7 (Raspberry Pi 3)
+
+Docker will automatically pull the correct image for your platform.
+
+**Building your own multi-platform image:**
+
+```bash
+# Install buildx (if not already installed)
+docker buildx create --use
+
+# Build for all platforms
+./build-docker.sh v1.0.0
+```
+
 ### Production Build
 
 ```bash

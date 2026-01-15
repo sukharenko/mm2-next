@@ -36,8 +36,6 @@ app.prepare().then(() => {
   const dumpPort = parseInt(process.env.DUMP1090_JSON_PORT || "8080");
   const dumpUrl = `http://${dumpHost}:${dumpPort}/data/aircraft.json`;
 
-  console.log(`Fetching from dump1090 JSON API at ${dumpUrl}...`);
-
   // Broadcast loop - fetch JSON every second
   setInterval(async () => {
     try {
@@ -45,11 +43,8 @@ app.prepare().then(() => {
       const data: any = await response.json();
 
       if (!data.aircraft || !Array.isArray(data.aircraft)) {
-        console.log("[JSON API] No aircraft data");
         return;
       }
-
-      console.log(`[JSON API] ${data.aircraft.length} aircraft`);
 
       const formattedAircraft = data.aircraft.map((a: any) => {
         const hex = a.hex.toUpperCase();

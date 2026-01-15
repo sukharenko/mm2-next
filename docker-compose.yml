@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+  mm2-next:
+    image: ysukharenko/mm2-next:latest
+    container_name: mm2-next
+    restart: unless-stopped
+    ports:
+      - "8082:8082"
+    env_file: .env.docker
+    environment:
+      # Variables are loaded from .env.docker
+      # You can override them here if needed
+      - NODE_ENV=production
+    networks:
+      - adsb-network
+
+networks:
+  adsb-network:
+    driver: bridge
