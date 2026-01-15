@@ -174,13 +174,20 @@ The Docker image supports multiple platforms:
 
 Docker will automatically pull the correct image for your platform.
 
-**Building your own multi-platform image:**
+**Automated Builds:**
+
+Docker images are automatically built and published via GitHub Actions on every release:
+
+- Push to `main` branch → builds `latest` tag
+- Create release tag (e.g., `v1.0.0`) → builds versioned tags (`1.0.0`, `1.0`, `1`, `latest`)
+
+**Manual build (for development):**
 
 ```bash
-# Install buildx (if not already installed)
-docker buildx create --use
+# Local build for testing
+docker build -t mm2-next .
 
-# Build for all platforms
+# Multi-platform build (requires buildx)
 ./build-docker.sh v1.0.0
 ```
 
