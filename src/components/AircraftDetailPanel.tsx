@@ -1,4 +1,4 @@
-import { X, ArrowUp, ArrowDown, Plane } from "lucide-react";
+import { X, ArrowUp, ArrowDown, Plane, MapPin } from "lucide-react";
 import { Aircraft } from "@/hooks/useAircraft";
 import { getCountryFromHex, getFlagEmoji } from "@/utils/icao";
 import { useState, useEffect } from "react";
@@ -64,6 +64,33 @@ export function AircraftDetailPanel({
   } | null>(null);
   const [imageError, setImageError] = useState(false);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [flightRoute, setFlightRoute] = useState<{
+    origin: {
+      iata: string;
+      name: string;
+      city: string;
+      gate?: string | null;
+      terminal?: string | null;
+    };
+    destination: {
+      iata: string;
+      name: string;
+      city: string;
+      gate?: string | null;
+      terminal?: string | null;
+      baggage_claim?: string | null;
+    };
+    times?: {
+      scheduled_out?: string | null;
+      estimated_out?: string | null;
+      actual_out?: string | null;
+      scheduled_in?: string | null;
+      estimated_in?: string | null;
+      actual_in?: string | null;
+    };
+    status?: string;
+  } | null>(null);
+  const [routeLoading, setRouteLoading] = useState(false);
 
   // Reset state when aircraft changes
   useEffect(() => {
@@ -71,6 +98,8 @@ export function AircraftDetailPanel({
     setPhotoData(null);
     setBasicData(null);
     setIsLightboxOpen(false);
+    setFlightRoute(null);
+    setRouteLoading(false);
 
     if (aircraft?.hex && !aircraft.hex.startsWith("MOCK")) {
       // 1. Fetch Photo & Type from PlaneSpotters (Secondary source now)
@@ -110,8 +139,28 @@ export function AircraftDetailPanel({
           }
         })
         .catch(() => {});
+
+      // 3. Fetch Flight Route from FlightAware (if callsign available)
+      if (aircraft.callsign && aircraft.callsign.trim()) {
+        setRouteLoading(true);
+        fetch(`/api/flight/${aircraft.callsign.trim()}`)
+          .then((res) => res.json())
+          .then((data) => {
+            console.log("[FlightAware Response]", data);
+            if (data.origin && data.destination) {
+              setFlightRoute({
+                origin: data.origin,
+                destination: data.destination,
+                times: data.times,
+                status: data.status,
+              });
+            }
+          })
+          .catch(() => {})
+          .finally(() => setRouteLoading(false));
+      }
     }
-  }, [aircraft?.hex]);
+  }, [aircraft?.hex, aircraft?.callsign]);
 
   if (!aircraft) return null;
 
@@ -147,16 +196,19 @@ export function AircraftDetailPanel({
           <span className="text-white text-xl font-bold">
             {basicData?.manufacturer} {basicData?.type || basicData?.icaoType}
           </span>
-          {photoData?.link && !basicData?.largeImageUrl && (
-            <a
-              href={photoData.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-4 py-2 bg-sky-500 hover:bg-sky-400 text-white rounded-full text-sm font-semibold transition-colors"
-            >
-              View on PlaneSpotters.net
-            </a>
-          )}
+          <div className="flex gap-2">
+            {photoData?.link && !basicData?.largeImageUrl && (
+              <a
+                href={photoData.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 bg-sky-500 hover:bg-sky-400 text-white rounded-full text-sm font-semibold transition-colors"
+              >
+                PlaneSpotters.net
+              </a>
+            )}
+            {/* External Route Links inside Lightbox too? Maybe not, keep it clean. */}
+          </div>
         </div>
       </div>
     );
@@ -203,11 +255,20 @@ export function AircraftDetailPanel({
               <span className="text-2xl" title={displayCountry}>
                 {displayFlag}
               </span>
-              <h2 className="text-3xl font-bold text-sky-400 font-mono tracking-tight">
-                {basicData?.reg || aircraft.callsign || aircraft.hex}
-              </h2>
+              <div className="flex flex-col">
+                <h2 className="text-3xl font-bold text-sky-400 font-mono tracking-tight leading-none">
+                  {basicData?.reg || aircraft.callsign || aircraft.hex}
+                </h2>
+                {basicData?.reg &&
+                  aircraft.callsign &&
+                  aircraft.callsign !== basicData.reg && (
+                    <span className="text-sm font-mono text-white/50 font-bold tracking-wider">
+                      {aircraft.callsign}
+                    </span>
+                  )}
+              </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 mt-1">
               <span className="text-xs font-mono text-white/50 bg-white/5 px-1.5 py-0.5 rounded border border-white/5">
                 {aircraft.hex}
               </span>
@@ -235,6 +296,271 @@ export function AircraftDetailPanel({
             <X size={20} />
           </button>
         </div>
+
+        {/* Flight Route Display */}
+        {flightRoute && (
+          <div className="border-b border-white/10 bg-gradient-to-r from-sky-500/5 to-transparent">
+            {/* Status Bar */}
+            {flightRoute.status && (
+              <div className="px-4 pt-3 pb-2 flex items-center justify-between">
+                <span className="text-[10px] uppercase tracking-widest text-white/30 font-bold">
+                  Flight Status
+                </span>
+                <span
+                  className={clsx(
+                    "text-xs font-bold px-2 py-0.5 rounded",
+                    flightRoute.status === "Scheduled" &&
+                      "bg-blue-500/20 text-blue-400",
+                    flightRoute.status === "En Route" &&
+                      "bg-emerald-500/20 text-emerald-400",
+                    flightRoute.status === "Landed" &&
+                      "bg-sky-500/20 text-sky-400",
+                    flightRoute.status === "Cancelled" &&
+                      "bg-rose-500/20 text-rose-400",
+                    !flightRoute.status.match(
+                      /Scheduled|En Route|Landed|Cancelled/
+                    ) && "bg-white/10 text-white/60"
+                  )}
+                >
+                  {flightRoute.status}
+                </span>
+              </div>
+            )}
+
+            {/* Route */}
+            <div className="px-4 py-3 flex items-start justify-between gap-4">
+              {/* Origin */}
+              <div className="flex items-start gap-2 flex-1">
+                <MapPin size={14} className="text-emerald-400 mt-0.5" />
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-mono font-bold text-emerald-400">
+                    {flightRoute.origin.iata}
+                  </span>
+                  <span className="text-[9px] text-white/40 leading-tight max-w-[140px]">
+                    {flightRoute.origin.city || flightRoute.origin.name}
+                  </span>
+                  {(flightRoute.origin.gate || flightRoute.origin.terminal) && (
+                    <div className="flex gap-1 mt-0.5">
+                      {flightRoute.origin.terminal && (
+                        <span className="text-[8px] bg-white/5 text-white/50 px-1 py-0.5 rounded">
+                          T{flightRoute.origin.terminal}
+                        </span>
+                      )}
+                      {flightRoute.origin.gate && (
+                        <span className="text-[8px] bg-emerald-500/10 text-emerald-400 px-1 py-0.5 rounded">
+                          Gate {flightRoute.origin.gate}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  {/* Departure Time */}
+                  {flightRoute.times && (
+                    <div className="text-[9px] text-white/50 mt-1 flex flex-col gap-0.5">
+                      {flightRoute.times.actual_out ? (
+                        <>
+                          <span className="text-emerald-400 font-bold">
+                            ✓{" "}
+                            {new Date(
+                              flightRoute.times.actual_out
+                            ).toLocaleTimeString("en-US", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                          {flightRoute.times.scheduled_out && (
+                            <span className="text-white/30 line-through text-[8px]">
+                              {new Date(
+                                flightRoute.times.scheduled_out
+                              ).toLocaleTimeString("en-US", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                          )}
+                        </>
+                      ) : flightRoute.times.estimated_out ? (
+                        <>
+                          <span className="text-amber-400">
+                            Est:{" "}
+                            {new Date(
+                              flightRoute.times.estimated_out
+                            ).toLocaleTimeString("en-US", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                          {flightRoute.times.scheduled_out && (
+                            <span className="text-white/30 text-[8px]">
+                              Sch:{" "}
+                              {new Date(
+                                flightRoute.times.scheduled_out
+                              ).toLocaleTimeString("en-US", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                          )}
+                        </>
+                      ) : flightRoute.times.scheduled_out ? (
+                        <span>
+                          Sch:{" "}
+                          {new Date(
+                            flightRoute.times.scheduled_out
+                          ).toLocaleTimeString("en-US", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                      ) : null}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="text-white/30 text-lg mt-1">→</div>
+
+              {/* Destination */}
+              <div className="flex items-start gap-2 flex-1 justify-end">
+                <div className="flex flex-col items-end gap-1">
+                  <span className="text-sm font-mono font-bold text-sky-400">
+                    {flightRoute.destination.iata}
+                  </span>
+                  <span className="text-[9px] text-white/40 leading-tight max-w-[140px] text-right">
+                    {flightRoute.destination.city ||
+                      flightRoute.destination.name}
+                  </span>
+                  {(flightRoute.destination.gate ||
+                    flightRoute.destination.terminal ||
+                    flightRoute.destination.baggage_claim) && (
+                    <div className="flex gap-1 mt-0.5">
+                      {flightRoute.destination.terminal && (
+                        <span className="text-[8px] bg-white/5 text-white/50 px-1 py-0.5 rounded">
+                          T{flightRoute.destination.terminal}
+                        </span>
+                      )}
+                      {flightRoute.destination.gate && (
+                        <span className="text-[8px] bg-sky-500/10 text-sky-400 px-1 py-0.5 rounded">
+                          Gate {flightRoute.destination.gate}
+                        </span>
+                      )}
+                      {flightRoute.destination.baggage_claim && (
+                        <span className="text-[8px] bg-amber-500/10 text-amber-400 px-1 py-0.5 rounded">
+                          🎒 {flightRoute.destination.baggage_claim}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  {/* Arrival Time */}
+                  {flightRoute.times && (
+                    <div className="text-[9px] text-white/50 mt-1 flex flex-col gap-0.5 items-end">
+                      {flightRoute.times.actual_in ? (
+                        <>
+                          <span className="text-sky-400 font-bold">
+                            ✓{" "}
+                            {new Date(
+                              flightRoute.times.actual_in
+                            ).toLocaleTimeString("en-US", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                          {flightRoute.times.scheduled_in && (
+                            <span className="text-white/30 line-through text-[8px]">
+                              {new Date(
+                                flightRoute.times.scheduled_in
+                              ).toLocaleTimeString("en-US", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                          )}
+                        </>
+                      ) : flightRoute.times.estimated_in ? (
+                        <>
+                          <span className="text-amber-400">
+                            Est:{" "}
+                            {new Date(
+                              flightRoute.times.estimated_in
+                            ).toLocaleTimeString("en-US", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                          {flightRoute.times.scheduled_in && (
+                            <span className="text-white/30 text-[8px]">
+                              Sch:{" "}
+                              {new Date(
+                                flightRoute.times.scheduled_in
+                              ).toLocaleTimeString("en-US", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                          )}
+                        </>
+                      ) : flightRoute.times.scheduled_in ? (
+                        <span>
+                          Sch:{" "}
+                          {new Date(
+                            flightRoute.times.scheduled_in
+                          ).toLocaleTimeString("en-US", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                      ) : null}
+                    </div>
+                  )}
+                </div>
+                <MapPin size={14} className="text-sky-400 mt-0.5" />
+              </div>
+            </div>
+          </div>
+        )}
+        {routeLoading && (
+          <div className="p-3 border-b border-white/10 bg-white/5 text-center">
+            <span className="text-xs text-white/40 animate-pulse">
+              Loading route...
+            </span>
+          </div>
+        )}
+
+        {/* Route / External Links */}
+        {(aircraft.callsign || basicData?.reg) && (
+          <div className="flex items-center gap-2 p-3 border-b border-white/10 bg-white/5 overflow-x-auto scrollbar-none">
+            <span className="text-[10px] uppercase tracking-widest text-white/30 font-bold shrink-0">
+              Route Info:
+            </span>
+            <a
+              href={`https://flightaware.com/live/flight/${aircraft.callsign || basicData?.reg}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-2 py-1 bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 text-xs rounded border border-sky-500/20 whitespace-nowrap transition-colors"
+            >
+              FlightAware
+            </a>
+            <a
+              href={
+                aircraft.callsign
+                  ? `https://www.flightradar24.com/data/flights/${aircraft.callsign}`
+                  : `https://www.flightradar24.com/data/aircraft/${basicData?.reg}`
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-2 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 text-xs rounded border border-amber-500/20 whitespace-nowrap transition-colors"
+            >
+              FlightRadar24
+            </a>
+            <a
+              href={`https://www.google.com/search?q=flight+${aircraft.callsign || basicData?.reg}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-2 py-1 bg-white/5 hover:bg-white/10 text-white/60 hover:text-white text-xs rounded border border-white/10 whitespace-nowrap transition-colors"
+            >
+              Google
+            </a>
+          </div>
+        )}
 
         {/* Main Stats Grid */}
         <div className="grid grid-cols-2 gap-px bg-white/10 border-b border-white/10">

@@ -17,6 +17,7 @@
     "mode-s-aircraft-store": "^1.0.1",
     "mode-s-decoder": "^1.0.1",
     "next": "16.1.2",
+    "node-cache": "^5.1.2",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "socket.io": "^4.8.3",
