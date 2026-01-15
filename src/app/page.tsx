@@ -6,12 +6,23 @@ import { AircraftMarker } from "@/components/Map/AircraftMarker";
 import { RangeRings } from "@/components/Map/RangeRings";
 import { useAircraft, Aircraft } from "@/hooks/useAircraft";
 import { AircraftDetailPanel } from "@/components/AircraftDetailPanel";
-import { Plane, SignalHigh, WifiOff, ArrowUp, ArrowDown } from "lucide-react";
+import {
+  Plane,
+  SignalHigh,
+  WifiOff,
+  ArrowUp,
+  ArrowDown,
+  Settings,
+  Ruler,
+} from "lucide-react";
 import clsx from "clsx";
+import { SettingsProvider, useSettings } from "@/contexts/SettingsContext";
 
-export default function Home() {
+function AppContent() {
   const { aircraft, isConnected } = useAircraft();
   const planes = Object.values(aircraft);
+  const { units, setUnits, formatAltitude, formatSpeed } = useSettings();
+  const [showSettings, setShowSettings] = useState(false);
 
   // Parse location for rings
   const [stationPos] = useState(() => {
@@ -58,7 +69,7 @@ export default function Home() {
       />
 
       {/* UI Overlay - Top Bar */}
-      <div className="absolute top-4 left-4 right-4 h-16 bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 flex items-center px-6 justify-between shadow-2xl z-10 transition-all hover:bg-black/50">
+      <div className="absolute top-4 left-4 right-4 h-16 bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 flex items-center px-6 justify-between shadow-2xl z-50 transition-all hover:bg-black/50">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-sky-500/20 rounded-lg text-sky-400">
             <Plane size={24} />
@@ -93,6 +104,67 @@ export default function Home() {
           >
             {isConnected ? <SignalHigh size={14} /> : <WifiOff size={14} />}
             <span>{isConnected ? "LIVE FEED" : "DISCONNECTED"}</span>
+          </div>
+
+          <div className="h-8 w-px bg-white/10" />
+
+          {/* Settings Toggle */}
+          <div className="relative">
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              className={clsx(
+                "p-2 rounded-full transition-colors",
+                showSettings
+                  ? "bg-white/20 text-white"
+                  : "hover:bg-white/10 text-white/60"
+              )}
+            >
+              <Settings size={20} />
+            </button>
+
+            {showSettings && (
+              <div className="absolute top-12 right-0 w-64 bg-black/80 backdrop-blur-xl border border-white/10 rounded-xl p-4 shadow-2xl animate-in fade-in slide-in-from-top-2">
+                <h3 className="text-xs font-bold text-white/40 uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <Settings size={12} /> Settings
+                </h3>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-sm text-white/80">
+                      <Ruler size={16} className="text-sky-400" />
+                      <span>Units</span>
+                    </div>
+                    <div className="flex bg-white/10 rounded-lg p-0.5">
+                      <button
+                        onClick={() => setUnits("metric")}
+                        className={clsx(
+                          "px-3 py-1 text-xs font-medium rounded-md transition-all",
+                          units === "metric"
+                            ? "bg-sky-500 text-white shadow-lg"
+                            : "text-white/40 hover:text-white"
+                        )}
+                      >
+                        Metric
+                      </button>
+                      <button
+                        onClick={() => setUnits("imperial")}
+                        className={clsx(
+                          "px-3 py-1 text-xs font-medium rounded-md transition-all",
+                          units === "imperial"
+                            ? "bg-sky-500 text-white shadow-lg"
+                            : "text-white/40 hover:text-white"
+                        )}
+                      >
+                        Imp
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-white/30 pl-6">
+                    {units === "metric" ? "Meters, km/h" : "Feet, Knots"}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -144,13 +216,9 @@ export default function Home() {
                 </div>
                 <div className="flex flex-col items-end text-xs text-white/60 tabular-nums">
                   <span>
-                    {plane.altitude
-                      ? Math.round(plane.altitude) + " ft"
-                      : "---"}
+                    {plane.altitude ? formatAltitude(plane.altitude) : "---"}
                   </span>
-                  <span>
-                    {plane.speed ? Math.round(plane.speed) + " kts" : "---"}
-                  </span>
+                  <span>{plane.speed ? formatSpeed(plane.speed) : "---"}</span>
                 </div>
               </div>
             ))}
@@ -162,5 +230,13 @@ export default function Home() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function Home() {
+  return (
+    <SettingsProvider>
+      <AppContent />
+    </SettingsProvider>
   );
 }

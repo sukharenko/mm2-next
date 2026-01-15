@@ -134,11 +134,26 @@ export function MapContainer({
           defaultZoom={zoom}
           gestureHandling={"greedy"}
           disableDefaultUI={true}
-          styles={mapStyles}
-          className="w-full h-full"
           onCameraChanged={onCameraChanged}
           mapId="DEMO_MAP_ID"
         >
+          <style jsx global>{`
+            /* Force Dark Mode via CSS Filter */
+            /* Targets Vector Map (Canvas) and Raster Map (Divs/Images) */
+            .gm-style > div:first-child > div:first-child {
+              filter: invert(90%) hue-rotate(180deg) brightness(90%)
+                contrast(110%) !important;
+            }
+            /* Exclude UI controls from inversion if possible, though strict selection is hard without IDs */
+            .gmnoprint,
+            .gm-style-cc {
+              filter: invert(100%) hue-rotate(180deg) !important; /* Re-invert controls to look normal */
+            }
+            /* Specific fix for images/tiles if the above layout differs */
+            img[src*="googleapis"] {
+              filter: invert(90%) hue-rotate(180deg) !important;
+            }
+          `}</style>
           <MapUpdater center={focusedLocation} />
           {children}
         </Map>

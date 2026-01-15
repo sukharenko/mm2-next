@@ -5,6 +5,7 @@ import { Aircraft } from "@/hooks/useAircraft";
 import { Plane } from "lucide-react";
 import clsx from "clsx";
 import { TrajectoryLine } from "./TrajectoryLine";
+import { useSettings } from "@/contexts/SettingsContext";
 
 export function AircraftMarker({
   aircraft,
@@ -15,6 +16,8 @@ export function AircraftMarker({
   selected?: boolean;
   onClick?: () => void;
 }) {
+  const { formatAltitude } = useSettings();
+
   if (!aircraft.lat || !aircraft.lon) return null;
 
   const isClimbing = (aircraft.vertRate || 0) > 100;
@@ -73,7 +76,7 @@ export function AircraftMarker({
             <span>{aircraft.callsign || aircraft.hex}</span>
             {selected && (
               <span className="text-[8px] opacity-80">
-                {Math.round(aircraft.altitude || 0)}ft
+                {aircraft.altitude ? formatAltitude(aircraft.altitude) : ""}
               </span>
             )}
           </div>

@@ -47,7 +47,7 @@ export function useAircraft() {
     }
 
     function onAircraftUpdate(data: Aircraft[]) {
-      console.log("Socket: Full Update", data.length, "planes", data);
+      // console.log("Socket: Full Update", data.length, "planes", data);
       // Full update (e.g. on connect or cleanup)
       const nextState: Record<string, Aircraft> = {};
       data.forEach((p) => {

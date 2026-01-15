@@ -40,7 +40,9 @@ export function getCountryFromHex(hex: string): { name: string; flag: string } {
   if (h >= 0x0d0000 && h <= 0x0d7fff) return { name: "Mexico", flag: "🇲🇽" }; // XA-xxx
   if (h >= 0x760000 && h <= 0x767fff) return { name: "Singapore", flag: "🇸🇬" }; // 9V-xxx
   if (h >= 0x880000 && h <= 0x887fff) return { name: "Thailand", flag: "🇹🇭" }; // HS-xxx
-  if (h >= 0x890000 && h <= 0x897fff) return { name: "Vietnam", flag: "🇻🇳" }; // VN-xxx
+  if (h >= 0x888000 && h <= 0x88ffff) return { name: "Vietnam", flag: "🇻🇳" }; // VN-xxx, correctly 888
+  if (h >= 0x896000 && h <= 0x896fff)
+    return { name: "United Arab Emirates", flag: "🇦🇪" }; // A6-xxx
   if (h >= 0x740000 && h <= 0x747fff) return { name: "Jordan", flag: "🇯🇴" }; // JY-xxx
   if (h >= 0x730000 && h <= 0x737fff) return { name: "Israel", flag: "🇮🇱" }; // 4X-xxx
   if (h >= 0x020000 && h <= 0x027fff) return { name: "Morocco", flag: "🇲🇦" }; // CN-xxx
@@ -49,4 +51,13 @@ export function getCountryFromHex(hex: string): { name: string; flag: string } {
   if (h >= 0x8a0000 && h <= 0x8a7fff) return { name: "Indonesia", flag: "🇮🇩" }; // PK-xxx
 
   return { name: "Unknown", flag: "🏳️" };
+}
+
+export function getFlagEmoji(isoCode: string) {
+  if (!isoCode) return "🏳️";
+  const codePoints = isoCode
+    .toUpperCase()
+    .split("")
+    .map((char) => 127397 + char.charCodeAt(0));
+  return String.fromCodePoint(...codePoints);
 }
