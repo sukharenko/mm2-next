@@ -1,319 +1,135 @@
-import { createServer } from "node:http";
+import { createServer } from "http";
+import { Server as SocketIOServer } from "socket.io";
 import next from "next";
-import { Server } from "socket.io";
-import net from "node:net";
-// @ts-ignore
-import ModeSDecoder from "mode-s-decoder";
-// @ts-ignore
-import AircraftStore from "mode-s-aircraft-store";
+import fetch from "node-fetch";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
 const port = 8081;
 
-// Initialize Next.js
 const app = next({ dev, hostname, port });
 const handler = app.getRequestHandler();
 
-// Initialize Aircraft Store
-const store = new AircraftStore({
-  timeout: 60000,
-});
-
-// Auxiliary store for history/trace
-// hex -> [lat, lon][]
-const historyStore: Record<string, [number, number][]> = {};
-
-// Extra data not stored by AircraftStore
-// hex -> { vertRate, squawk, category, lastSeen }
-const extraData: Record<
-  string,
-  { vertRate?: number; squawk?: string; category?: number; lastSeen: number }
-> = {};
+// History store for trails
+const historyStore: Record<string, Array<{ lat: number; lon: number }>> = {};
+const MAX_HISTORY = 50;
 
 app.prepare().then(() => {
-  const httpServer = createServer(handler);
-  const io = new Server(httpServer);
-
-  // Broadcast loop
-  setInterval(() => {
-    const aircraft = store.getAircrafts();
-    const now = Date.now();
-
-    // Clean up stale extraData
-    for (const hex in extraData) {
-      if (now - extraData[hex].lastSeen > 60000) {
-        delete extraData[hex];
-      }
+  const httpServer = createServer(async (req, res) => {
+    try {
+      await handler(req, res);
+    } catch (err) {
+      console.error("Error occurred handling", req.url, err);
+      res.statusCode = 500;
+      res.end("internal server error");
     }
+  });
 
-    const formattedAircraft = aircraft.map((a: any) => {
-      // Fix: Convert decimal ICAO to Hex string
-      const hex = Number(a.icao).toString(16).toUpperCase();
-      const lat = a.lat;
-      const lon = a.lng || a.lon;
-      const extra = extraData[hex] || {};
+  const io = new SocketIOServer(httpServer, {
+    cors: {
+      origin: "*",
+    },
+  });
 
-      // Update history if we have a valid position
-      if (lat && lon && hex) {
-        if (!historyStore[hex]) historyStore[hex] = [];
-        const path = historyStore[hex];
-        const lastPos = path[path.length - 1];
+  // Fetch from dump1090 JSON API
+  const dumpHost = process.env.DUMP1090_HOST || "192.168.3.7";
+  const dumpPort = parseInt(process.env.DUMP1090_JSON_PORT || "8080");
+  const dumpUrl = `http://${dumpHost}:${dumpPort}/data/aircraft.json`;
 
-        // Only add if moved significantly (approx 100m) to save bandwidth/mem
-        // 0.001 deg is roughly 111m
-        if (
-          !lastPos ||
-          Math.abs(lastPos[0] - lat) > 0.001 ||
-          Math.abs(lastPos[1] - lon) > 0.001
-        ) {
-          path.push([lat, lon]);
-          // Limit history to last 50 points
-          if (path.length > 50) path.shift();
-        }
+  console.log(`Fetching from dump1090 JSON API at ${dumpUrl}...`);
+
+  // Broadcast loop - fetch JSON every second
+  setInterval(async () => {
+    try {
+      const response = await fetch(dumpUrl);
+      const data: any = await response.json();
+
+      if (!data.aircraft || !Array.isArray(data.aircraft)) {
+        console.log("[JSON API] No aircraft data");
+        return;
       }
 
-      return {
-        ...a,
-        hex: hex,
-        lat: lat,
-        lon: lon,
-        messages: a.seen || 1,
-        speed: a.speed,
-        altitude: a.altitude,
-        heading: a.heading,
-        callsign: a.callsign,
-        // Extended fields from extraData or store (store seems to track squawk maybe?)
-        vertRate: extra.vertRate || a.vert_rate || 0,
-        squawk: extra.squawk || a.squawk,
-        category: extra.category || a.category,
-        trace: historyStore[hex] || [],
-      };
-    });
+      console.log(`[JSON API] ${data.aircraft.length} aircraft`);
 
-    io.emit("aircraft-update", formattedAircraft);
+      const formattedAircraft = data.aircraft.map((a: any) => {
+        const hex = a.hex.toUpperCase();
+
+        // Update history trail
+        if (a.lat && a.lon) {
+          if (!historyStore[hex]) historyStore[hex] = [];
+          historyStore[hex].push({ lat: a.lat, lon: a.lon });
+          if (historyStore[hex].length > MAX_HISTORY) {
+            historyStore[hex].shift();
+          }
+        }
+
+        return {
+          hex: hex,
+          lat: a.lat || 0,
+          lon: a.lon || 0,
+          altitude: a.altitude || 0,
+          speed: a.speed || 0,
+          heading: a.track || 0,
+          callsign: (a.flight || "").trim(),
+          vertRate: a.vert_rate || 0,
+          squawk: a.squawk,
+          category: a.category,
+          messages: a.messages || 0,
+          trace: historyStore[hex] || [],
+        };
+      });
+
+      io.emit("aircraft-update", formattedAircraft);
+    } catch (error) {
+      console.error("[JSON API] Fetch error:", error);
+    }
   }, 1000);
 
   io.on("connection", (socket) => {
     console.log("Client connected");
-    // Send immediate state
-    const aircraft = store.getAircrafts();
-    const formattedAircraft = aircraft.map((a: any) => {
-      const hex = Number(a.icao).toString(16).toUpperCase();
-      const extra = extraData[hex] || {};
-      return {
-        ...a,
-        hex: hex,
-        lat: a.lat,
-        lon: a.lng || a.lon,
-        speed: a.speed,
-        altitude: a.altitude,
-        heading: a.heading,
-        callsign: a.callsign,
-        vertRate: extra.vertRate || a.vert_rate || 0,
-        squawk: extra.squawk || a.squawk,
-        trace: historyStore[a.icao] || [],
-      };
-    });
-    socket.emit("aircraft-update", formattedAircraft);
-  });
-
-  // Connect to dump1090
-  const dumpHost = process.env.DUMP1090_HOST || "192.168.3.7";
-  const dumpPort = parseInt(process.env.DUMP1090_PORT || "30005");
-
-  console.log(`Connecting to dump1090 at ${dumpHost}:${dumpPort}...`);
-
-  const client = new net.Socket();
-  const decoder = new ModeSDecoder();
-  let buffer = Buffer.alloc(0);
-
-  client.connect(dumpPort, dumpHost, () => {
-    console.log("Connected to dump1090!");
-    // @ts-ignore
-    const g = global as any;
-    if (g.mockInterval) {
-      clearInterval(g.mockInterval);
-      g.mockInterval = null;
-      g.mockStarted = false;
-    }
-  });
-
-  client.on("data", (data) => {
-    buffer = Buffer.concat([buffer, data]);
-
-    while (buffer.length > 0) {
-      const escapeIndex = buffer.indexOf(0x1a);
-      if (escapeIndex === -1) {
-        if (buffer.length > 4096) buffer = Buffer.alloc(0);
-        break;
-      }
-      if (escapeIndex > 0) buffer = buffer.subarray(escapeIndex);
-      if (buffer.length < 2) break;
-
-      const type = buffer[1];
-      if (![0x31, 0x32, 0x33, 0x34].includes(type)) {
-        buffer = buffer.subarray(1);
-        continue;
-      }
-
-      let neededDataBytes = 0;
-      if (type === 0x32) neededDataBytes = 14;
-      else if (type === 0x33) neededDataBytes = 21;
-      else if (type === 0x31) neededDataBytes = 9;
-      else if (type === 0x34) neededDataBytes = 7;
-
-      const rawMessage = [];
-      let readIdx = 2;
-      let collected = 0;
-      let possiblyIncomplete = false;
-
-      while (readIdx < buffer.length && collected < neededDataBytes) {
-        const b = buffer[readIdx];
-        if (b === 0x1a) {
-          if (readIdx + 1 >= buffer.length) {
-            possiblyIncomplete = true;
-            break;
-          }
-          if (buffer[readIdx + 1] === 0x1a) {
-            rawMessage.push(0x1a);
-            readIdx += 2;
-          } else {
-            break;
-          }
-        } else {
-          rawMessage.push(b);
-          readIdx++;
-        }
-        collected++;
-      }
-
-      if (collected < neededDataBytes || possiblyIncomplete) break;
-
-      buffer = buffer.subarray(readIdx);
-      const frameBytes = Buffer.from(rawMessage.slice(7));
-
-      try {
-        const messages = decoder.parse(frameBytes);
-        if (Array.isArray(messages)) {
-          messages.forEach((msg) => {
-            if (msg) {
-              // Manually extracting extra fields
-              // Ensure we have an ICAO hex
-              if (msg.icao) {
-                // Fix conversion here too
-                const hex = Number(msg.icao).toString(16).toUpperCase();
-                if (!extraData[hex]) extraData[hex] = { lastSeen: Date.now() };
-
-                const entry = extraData[hex];
-                entry.lastSeen = Date.now();
-
-                // DEBUG: Log velocity messages to find the real field name
-                // Msg type 19 is Airborne Velocity
-                // @ts-ignore
-                const mType = msg.msgType || msg.messageType || msg.type;
-                if (mType === 19) {
-                  console.log("VELOCITY MSG:", JSON.stringify(msg));
-                }
-
-                if (msg.vert_rate !== undefined) entry.vertRate = msg.vert_rate;
-                // Fallback attempt based on other libraries
-                else if (msg.vertical_rate !== undefined)
-                  entry.vertRate = msg.vertical_rate;
-                else if (msg.baro_rate !== undefined)
-                  entry.vertRate = msg.baro_rate;
-
-                if (msg.squawk !== undefined) entry.squawk = msg.squawk;
-                if (msg.category !== undefined) entry.category = msg.category;
-              }
-              store.addMessage(msg);
-            }
+    // Send immediate state on connection
+    fetch(dumpUrl)
+      .then((res: any) => res.json())
+      .then((data: any) => {
+        if (data.aircraft && Array.isArray(data.aircraft)) {
+          const formattedAircraft = data.aircraft.map((a: any) => {
+            const hex = a.hex.toUpperCase();
+            return {
+              hex: hex,
+              lat: a.lat || 0,
+              lon: a.lon || 0,
+              altitude: a.altitude || 0,
+              speed: a.speed || 0,
+              heading: a.track || 0,
+              callsign: (a.flight || "").trim(),
+              vertRate: a.vert_rate || 0,
+              squawk: a.squawk,
+              category: a.category,
+              messages: a.messages || 0,
+              trace: historyStore[hex] || [],
+            };
           });
-        } else if (messages) {
-          store.addMessage(messages);
-          // Handle single message too
-          if (messages.icao) {
-            const hex = Number(messages.icao).toString(16).toUpperCase();
-            if (!extraData[hex]) extraData[hex] = { lastSeen: Date.now() };
-            const entry = extraData[hex];
-            entry.lastSeen = Date.now();
-
-            if (messages.vert_rate !== undefined)
-              entry.vertRate = messages.vert_rate;
-            if (messages.squawk !== undefined) entry.squawk = messages.squawk;
-            if (messages.category !== undefined)
-              entry.category = messages.category;
-          }
+          socket.emit("aircraft-update", formattedAircraft);
         }
-      } catch (e) {
-        console.error("Decoder error:", e);
+      })
+      .catch((err: any) =>
+        console.error("[JSON API] Connection fetch error:", err)
+      );
+  });
+
+  // Get location from env
+  const locationStr = process.env.NEXT_PUBLIC_LOCATION || "55.75:37.61";
+  const [lat, lng] = locationStr.split(":").map(Number);
+
+  // Clean up old history periodically
+  setInterval(() => {
+    const now = Date.now();
+    Object.keys(historyStore).forEach((hex) => {
+      if (historyStore[hex].length === 0) {
+        delete historyStore[hex];
       }
-    }
-  });
-
-  client.on("close", () => {
-    setTimeout(() => client.connect(dumpPort, dumpHost), 5000);
-  });
-
-  client.on("error", (err) => {
-    console.error("dump1090 error:", err.message);
-    // @ts-ignore
-    const g = global as any;
-    if (!g.mockStarted) {
-      g.mockStarted = true;
-      startMockData();
-    }
-  });
-
-  function startMockData() {
-    const locationStr = process.env.NEXT_PUBLIC_LOCATION || "55.75:37.61";
-    const [latStr, lonStr] = locationStr.split(":");
-    const centerLat = parseFloat(latStr);
-    const centerLon = parseFloat(lonStr);
-    console.log(`Starting MOCK DATA at ${centerLat}, ${centerLon}`);
-
-    const mockPlanes = Array.from({ length: 15 }).map((_, i) => ({
-      hex: `MOCK${i.toString(16).padStart(2, "0")}`,
-      lat: centerLat + (Math.random() - 0.5) * 0.5,
-      lon: centerLon + (Math.random() - 0.5) * 0.5,
-      heading: Math.random() * 360,
-      speed: 150 + Math.random() * 300,
-      altitude: 1000 + Math.random() * 30000,
-      vert_rate: (Math.random() - 0.5) * 2000, // Mock vertical speed
-      squawk: "1200",
-      callsign: `TEST${i}`,
-      messages: 0,
-      lastSeen: Date.now(),
-      icao: `MOCK${i.toString(16).padStart(2, "0")}`,
-    }));
-
-    // @ts-ignore
-    const g = global as any;
-    g.mockInterval = setInterval(() => {
-      const updates: any[] = [];
-      mockPlanes.forEach((p) => {
-        const rad = (p.heading * Math.PI) / 180;
-        p.lat += Math.cos(rad) * 0.0005;
-        p.lon += Math.sin(rad) * 0.0005;
-        p.lastSeen = Date.now();
-        p.messages++;
-        if (Math.abs(p.lat - centerLat) > 1)
-          p.heading = (p.heading + 180) % 360;
-
-        // Mock occasional V/S change
-        if (Math.random() < 0.1) p.vert_rate = (Math.random() - 0.5) * 2000;
-
-        updates.push({
-          ...p,
-          hex: p.icao,
-          lon: p.lon,
-          vertRate: p.vert_rate,
-          trace: [], // Mock trace not implemented for simplicity here, but simple to add
-        });
-      });
-      io.emit("aircraft-update", updates);
-    }, 1000);
-  }
+    });
+  }, 60000);
 
   httpServer
     .once("error", (err) => {

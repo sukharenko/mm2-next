@@ -285,9 +285,21 @@ export function AircraftDetailPanel({
 
           <div className="pr-0">
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-2xl" title={displayCountry}>
-                {displayFlag}
-              </span>
+              {/* Airline Logo or Flag */}
+              {airlineLogo ? (
+                <div className="w-12 h-12 flex items-center justify-center">
+                  <img
+                    src={airlineLogo}
+                    alt="Airline logo"
+                    className="max-w-full max-h-full object-contain opacity-90"
+                    onError={() => setAirlineLogo(null)}
+                  />
+                </div>
+              ) : (
+                <span className="text-3xl" title={displayCountry}>
+                  {displayFlag}
+                </span>
+              )}
               <div className="flex flex-col">
                 <h2 className="text-3xl font-bold text-sky-400 font-mono tracking-tight leading-none">
                   {basicData?.reg || aircraft.callsign || aircraft.hex}
@@ -312,30 +324,21 @@ export function AircraftDetailPanel({
               </div>
             </div>
 
-            {/* Airline name and country with logo */}
-            <div className="flex items-center justify-between gap-3 mt-1">
-              <div className="flex flex-col gap-0.5">
-                {basicData?.airline && (
-                  <div className="text-sm text-white/70 font-medium truncate max-w-[200px]">
-                    {basicData.airline}
-                  </div>
-                )}
-                {displayCountry !== "Unknown" && (
+            {/* Airline name and country */}
+            <div className="flex flex-col gap-0.5 mt-1">
+              {basicData?.airline && (
+                <div className="text-sm text-white/70 font-medium">
+                  {basicData.airline}
+                </div>
+              )}
+              {displayCountry !== "Unknown" && (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-base" title={displayCountry}>
+                    {displayFlag}
+                  </span>
                   <span className="text-[10px] text-white/40 uppercase tracking-wider font-semibold">
                     {displayCountry}
                   </span>
-                )}
-              </div>
-
-              {/* Airline Logo */}
-              {airlineLogo && (
-                <div className="flex-shrink-0">
-                  <img
-                    src={airlineLogo}
-                    alt="Airline logo"
-                    className="h-10 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity"
-                    onError={() => setAirlineLogo(null)}
-                  />
                 </div>
               )}
             </div>
