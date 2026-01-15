@@ -14,6 +14,8 @@
     "@vis.gl/react-google-maps": "^1.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.26.2",
+    "highcharts": "^12.5.0",
+    "highcharts-react-official": "^3.2.3",
     "lucide-react": "^0.562.0",
     "mode-s-aircraft-store": "^1.0.1",
     "mode-s-decoder": "^1.0.1",

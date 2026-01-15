@@ -14,16 +14,19 @@ import {
   ArrowDown,
   Settings,
   Ruler,
+  BarChart,
 } from "lucide-react";
 import clsx from "clsx";
 import { SettingsProvider, useSettings } from "@/contexts/SettingsContext";
 import { useConfig } from "@/hooks/useConfig";
+import { StatsModal } from "@/components/StatsModal";
 
 function AppContent() {
   const { aircraft, isConnected } = useAircraft();
   const planes = Object.values(aircraft);
   const { units, setUnits, formatAltitude, formatSpeed } = useSettings();
   const [showSettings, setShowSettings] = useState(false);
+  const [showStats, setShowStats] = useState(false);
   const { config } = useConfig();
 
   // Parse location for rings
@@ -119,6 +122,15 @@ function AppContent() {
           </div>
 
           <div className="h-8 w-px bg-white/10" />
+
+          {/* Stats Button */}
+          <button
+            onClick={() => setShowStats(true)}
+            className="p-2 rounded-full transition-colors hover:bg-white/10 text-white/60 hover:text-white"
+            title="Statistics"
+          >
+            <BarChart size={20} />
+          </button>
 
           {/* Settings Toggle */}
           <div className="relative">
@@ -241,6 +253,9 @@ function AppContent() {
           )}
         </div>
       </div>
+
+      {/* Stats Modal */}
+      {showStats && <StatsModal onClose={() => setShowStats(false)} />}
     </main>
   );
 }

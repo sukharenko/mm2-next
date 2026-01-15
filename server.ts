@@ -14,6 +14,59 @@ const handler = app.getRequestHandler();
 const historyStore: Record<string, Array<{ lat: number; lon: number }>> = {};
 const MAX_HISTORY = 50;
 
+// Statistics tracking (global for API access)
+export const stats = {
+  startTime: Date.now(),
+  seenAircraft: new Set<string>(),
+  messagesPerHour: Array(24)
+    .fill(0)
+    .map((_, i) => ({ hour: i, total: 0, adsb: 0, modeS: 0 })),
+  coverage: Array(36)
+    .fill(0)
+    .map((_, i) => ({ angle: i * 10, maxDistance: 0, count: 0 })),
+  messageTypes: {} as Record<string, number>,
+  totalMessages: 0,
+  maxDistance: 0,
+};
+
+// Helper: Calculate distance between two points (Haversine formula)
+function calculateDistance(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+): number {
+  const R = 6371; // Earth radius in km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+// Helper: Calculate bearing from receiver to aircraft
+function calculateBearing(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+): number {
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const y = Math.sin(dLon) * Math.cos((lat2 * Math.PI) / 180);
+  const x =
+    Math.cos((lat1 * Math.PI) / 180) * Math.sin((lat2 * Math.PI) / 180) -
+    Math.sin((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.cos(dLon);
+  const bearing = (Math.atan2(y, x) * 180) / Math.PI;
+  return (bearing + 360) % 360;
+}
+
 app.prepare().then(() => {
   const httpServer = createServer(async (req, res) => {
     try {
@@ -73,6 +126,57 @@ app.prepare().then(() => {
           trace: historyStore[hex] || [],
         };
       });
+
+      // Update statistics
+      const receiverLat = parseFloat(
+        process.env.LOCATION?.split(":")[0] || "0"
+      );
+      const receiverLon = parseFloat(
+        process.env.LOCATION?.split(":")[1] || "0"
+      );
+
+      data.aircraft.forEach((a: any) => {
+        if (!a.hex) return;
+
+        // Track unique aircraft
+        stats.seenAircraft.add(a.hex);
+
+        // Update coverage pattern
+        if (a.lat && a.lon && receiverLat && receiverLon) {
+          const distance = calculateDistance(
+            receiverLat,
+            receiverLon,
+            a.lat,
+            a.lon
+          );
+          const bearing = calculateBearing(
+            receiverLat,
+            receiverLon,
+            a.lat,
+            a.lon
+          );
+          const angleIndex = Math.floor(bearing / 10);
+
+          if (distance > stats.coverage[angleIndex].maxDistance) {
+            stats.coverage[angleIndex].maxDistance = distance;
+          }
+          stats.coverage[angleIndex].count++;
+
+          if (distance > stats.maxDistance) {
+            stats.maxDistance = distance;
+          }
+        }
+      });
+
+      // Update messages per hour
+      const currentHour = new Date().getHours();
+      stats.messagesPerHour[currentHour].total += data.aircraft.length;
+      stats.totalMessages += data.aircraft.length;
+
+      // Update global stats for API
+      if (typeof global !== "undefined" && (global as any).setServerStats) {
+        (global as any).setServerStats(stats);
+      }
 
       io.emit("aircraft-update", formattedAircraft);
     } catch (error) {
