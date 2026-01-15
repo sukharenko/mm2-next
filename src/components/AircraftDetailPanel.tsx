@@ -44,11 +44,33 @@ export function AircraftDetailPanel({
   aircraft,
   onClose,
 }: AircraftDetailPanelProps) {
+  const [photoData, setPhotoData] = useState<{
+    url: string;
+    type: string;
+  } | null>(null);
   const [imageError, setImageError] = useState(false);
 
-  // Reset image error when aircraft changes
+  // Reset image error and fetch new data when aircraft changes
   useEffect(() => {
     setImageError(false);
+    setPhotoData(null);
+
+    if (aircraft?.hex && !aircraft.hex.startsWith("MOCK")) {
+      fetch(`https://api.planespotters.net/pub/photos/hex/${aircraft.hex}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.photos && data.photos.length > 0) {
+            const photo = data.photos[0];
+            setPhotoData({
+              url: photo.thumbnail_large?.src || photo.thumbnail?.src,
+              type: photo.plane_type,
+            });
+          }
+        })
+        .catch(() => {
+          // Ignore errors, will fall back to default
+        });
+    }
   }, [aircraft?.hex]);
 
   if (!aircraft) return null;
@@ -60,10 +82,9 @@ export function AircraftDetailPanel({
   const isDescending = vertRate < -100;
   const country = getCountryFromHex(hexStr);
 
-  // Use JetPhotos CDN for real planes, might work for some
-  const imageUrl = `https://cdn.jetphotos.com/full/5/12345_${hexStr}.jpg`;
   const placeholderUrl =
     "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?q=80&w=800&auto=format&fit=crop";
+  const displayImageUrl = photoData?.url || placeholderUrl;
 
   return (
     <div className="absolute top-24 right-4 w-96 bg-black/60 backdrop-blur-xl rounded-2xl border border-white/10 flex flex-col overflow-hidden shadow-2xl z-20 animate-in slide-in-from-right fade-in duration-300 ring-1 ring-white/10">
@@ -145,7 +166,7 @@ export function AircraftDetailPanel({
       <div className="relative h-56 bg-black/50 overflow-hidden group">
         {!imageError ? (
           <img
-            src={placeholderUrl}
+            src={displayImageUrl}
             alt="Aircraft"
             onError={() => setImageError(true)}
             className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity grayscale hover:grayscale-0 duration-700"
@@ -165,10 +186,11 @@ export function AircraftDetailPanel({
           <div className="flex items-center gap-2 text-[10px] text-white/60 font-mono">
             <div className="flex flex-col">
               <span className="uppercase tracking-widest text-white/30">
-                Category
+                Aircraft Type
               </span>
-              <span className="text-white/80">
-                {aircraft.category ? `CAT ${aircraft.category}` : "Unknown"}
+              <span className="text-white text-lg font-bold tracking-tight">
+                {photoData?.type ||
+                  (aircraft.category ? `CAT ${aircraft.category}` : "Unknown")}
               </span>
             </div>
           </div>

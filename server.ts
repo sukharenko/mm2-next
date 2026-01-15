@@ -208,7 +208,21 @@ app.prepare().then(() => {
                 const entry = extraData[hex];
                 entry.lastSeen = Date.now();
 
+                // DEBUG: Log velocity messages to find the real field name
+                // Msg type 19 is Airborne Velocity
+                // @ts-ignore
+                const mType = msg.msgType || msg.messageType || msg.type;
+                if (mType === 19) {
+                  console.log("VELOCITY MSG:", JSON.stringify(msg));
+                }
+
                 if (msg.vert_rate !== undefined) entry.vertRate = msg.vert_rate;
+                // Fallback attempt based on other libraries
+                else if (msg.vertical_rate !== undefined)
+                  entry.vertRate = msg.vertical_rate;
+                else if (msg.baro_rate !== undefined)
+                  entry.vertRate = msg.baro_rate;
+
                 if (msg.squawk !== undefined) entry.squawk = msg.squawk;
                 if (msg.category !== undefined) entry.category = msg.category;
               }
