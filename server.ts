@@ -84,6 +84,17 @@ app.prepare().then(() => {
     },
   });
 
+  // Socket.IO connection handler
+  io.on("connection", (socket) => {
+    console.log("[Socket.IO] Client connected");
+    socket.emit("aircraft-update", []);
+  });
+
+  // Initialize global stats for API access
+  if (typeof global !== "undefined" && (global as any).setServerStats) {
+    (global as any).setServerStats(stats);
+  }
+
   // Fetch from dump1090 JSON API
   const dumpHost = process.env.DUMP1090_HOST || "192.168.3.7";
   const dumpPort = parseInt(process.env.DUMP1090_JSON_PORT || "8080");
