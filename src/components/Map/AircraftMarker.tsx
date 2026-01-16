@@ -1,7 +1,7 @@
 "use client";
 
-import { AdvancedMarker } from "@vis.gl/react-google-maps";
 import { useMemo } from "react";
+import { CustomOverlay } from "./CustomOverlay";
 import { Aircraft } from "@/hooks/useAircraft";
 import clsx from "clsx";
 import { TrajectoryLine } from "./TrajectoryLine";
@@ -11,11 +11,11 @@ import { PlaneIcon } from "./PlaneIcon";
 export function AircraftMarker({
   aircraft,
   selected,
-  onClick,
+  onSelect,
 }: {
   aircraft: Aircraft;
   selected?: boolean;
-  onClick?: () => void;
+  onSelect: (hex: string) => void;
 }) {
   const { formatAltitude } = useSettings();
 
@@ -28,7 +28,7 @@ export function AircraftMarker({
       const last = aircraft.trace[aircraft.trace.length - 1];
       return { lat: last.lat, lng: last.lon };
     }
-    return null; // Or some default/error handling
+    return null;
   }, [aircraft.lat, aircraft.lon, aircraft.trace]);
 
   if (!position) return null;
@@ -44,62 +44,52 @@ export function AircraftMarker({
           color="#38bdf8"
         />
       )}
-      <AdvancedMarker
-        position={position}
-        onClick={onClick}
-        className="group"
-        zIndex={selected ? 50 : 1}
-      >
+
+      <CustomOverlay position={position} zIndex={selected ? 100 : 10}>
         <div
+          onClick={() => onSelect(aircraft.hex)}
           className={clsx(
-            "transition-all duration-1000 ease-linear absolute",
+            "cursor-pointer transition-all duration-1000 ease-linear relative",
             selected
               ? "text-sky-400 drop-shadow-[0_0_10px_rgba(56,189,248,0.9)] scale-125"
               : "text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]"
           )}
           style={{
-            // Rotate around center (tail centered via viewBox adjustment)
-            // FA plane faces right (90°), subtract 90 to point up at heading 0
+            // Rotate around center - FA plane faces right, subtract 90
             transform: `rotate(${(aircraft.heading || 0) - 90}deg)`,
             transformOrigin: "50% 50%",
-            left: 0,
-            top: 0,
           }}
         >
           <PlaneIcon size={32} />
+
+          {/* V/S Indicator */}
+          {(isClimbing || isDescending) && (
+            <div
+              className={clsx(
+                "absolute top-0 -right-3 text-[10px] font-bold",
+                isClimbing ? "text-emerald-400" : "text-rose-400"
+              )}
+              style={{
+                transform: `rotate(${90 - (aircraft.heading || 0)}deg)`,
+              }}
+            >
+              {isClimbing ? "↑" : "↓"}
+            </div>
+          )}
         </div>
 
-        {/* V/S Indicator */}
-        {(isClimbing || isDescending) && (
-          <div
-            className={clsx(
-              "absolute top-0 -right-3 text-[10px] font-bold",
-              isClimbing ? "text-emerald-400" : "text-rose-400"
-            )}
-          >
-            {isClimbing ? "↑" : "↓"}
-          </div>
-        )}
-
-        {/* Label */}
-        <div
-          className={clsx(
-            "absolute -top-8 left-1/2 -translate-x-1/2 text-xs font-mono px-1.5 py-0.5 rounded whitespace-nowrap pointer-events-none transition-all",
-            selected
-              ? "bg-sky-500 text-white font-bold z-50 scale-110"
-              : "text-white bg-black/50 group-hover:bg-black/70 group-hover:scale-110"
-          )}
-        >
-          <div className="flex flex-col items-center leading-none gap-0.5">
-            <span>{aircraft.callsign || aircraft.hex}</span>
-            {selected && (
-              <span className="text-[8px] opacity-80">
-                {aircraft.altitude ? formatAltitude(aircraft.altitude) : ""}
+        {/* Callsign label - outside rotation */}
+        {aircraft.callsign && (
+          <div className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-bold text-white bg-black/70 px-1.5 py-0.5 rounded pointer-events-none">
+            {aircraft.callsign.trim()}
+            {aircraft.altitude && (
+              <span className="ml-1 text-[9px] text-sky-300">
+                {formatAltitude(aircraft.altitude)}
               </span>
             )}
           </div>
-        </div>
-      </AdvancedMarker>
+        )}
+      </CustomOverlay>
     </>
   );
 }
