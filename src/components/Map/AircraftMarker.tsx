@@ -3,10 +3,10 @@
 import { AdvancedMarker } from "@vis.gl/react-google-maps";
 import { useMemo } from "react";
 import { Aircraft } from "@/hooks/useAircraft";
-import { Plane } from "lucide-react";
 import clsx from "clsx";
 import { TrajectoryLine } from "./TrajectoryLine";
 import { useSettings } from "@/contexts/SettingsContext";
+import { PlaneIcon } from "./PlaneIcon";
 
 export function AircraftMarker({
   aircraft,
@@ -52,16 +52,21 @@ export function AircraftMarker({
       >
         <div
           className={clsx(
-            "transition-all duration-1000 ease-linear relative",
+            "transition-all duration-1000 ease-linear absolute",
             selected
               ? "text-sky-400 drop-shadow-[0_0_10px_rgba(56,189,248,0.9)] scale-125"
               : "text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]"
           )}
           style={{
-            transform: `rotate(${(aircraft.heading || 0) - 47}deg) translateX(11px) translateY(-7px)`,
+            // Rotate around center (tail centered via viewBox adjustment)
+            // FA plane faces right (90°), subtract 90 to point up at heading 0
+            transform: `rotate(${(aircraft.heading || 0) - 90}deg)`,
+            transformOrigin: "50% 50%",
+            left: 0,
+            top: 0,
           }}
         >
-          <Plane size={24} fill="currentColor" />
+          <PlaneIcon size={32} />
         </div>
 
         {/* V/S Indicator */}
