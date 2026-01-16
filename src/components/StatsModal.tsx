@@ -59,7 +59,7 @@ export function StatsModal({ onClose }: StatsModalProps) {
     );
   }
 
-  // Coverage Pattern Chart (Polar)
+  // Coverage Pattern Chart (Polar - Multi-series style)
   const coverageOptions: Highcharts.Options = {
     chart: {
       polar: true,
@@ -67,64 +67,86 @@ export function StatsModal({ onClose }: StatsModalProps) {
     },
     title: {
       text: "Coverage Pattern (km)",
-      style: { color: "#fff" },
+      style: {
+        color: "#fff",
+        fontSize: "18px",
+        fontWeight: "600",
+      },
     },
     pane: {
       startAngle: 0,
       endAngle: 360,
+      size: "85%",
     },
     xAxis: {
       tickInterval: 45,
       min: 0,
       max: 360,
       labels: {
-        style: { color: "#94a3b8" },
+        style: { color: "#94a3b8", fontSize: "12px" },
         formatter: function () {
           return this.value + "°";
         },
       },
       gridLineColor: "#334155",
+      lineColor: "#475569",
     },
     yAxis: {
       min: 0,
-      gridLineColor: "#334155",
       labels: {
         style: { color: "#94a3b8" },
       },
+      gridLineColor: "#334155",
+      endOnTick: false,
+      showLastLabel: true,
     },
     plotOptions: {
       series: {
         pointStart: 0,
         pointInterval: 10,
       },
-      column: {
-        pointPadding: 0,
-        groupPadding: 0,
-      },
     },
     series: [
       {
-        type: "column",
+        type: "area",
+        name: "Coverage Area",
+        data: stats?.coverage?.map((c: any) => c.maxDistance) || [],
+        color: "rgba(239, 68, 68, 0.3)",
+        fillOpacity: 0.3,
+        lineWidth: 0,
+        marker: {
+          enabled: false,
+        },
+      },
+      {
+        type: "line",
         name: "Max Distance",
         data: stats?.coverage?.map((c: any) => c.maxDistance) || [],
         color: "#ef4444",
+        lineWidth: 3,
+        marker: {
+          enabled: false,
+        },
       },
     ],
     legend: {
       enabled: false,
     },
-    tooltip: {
-      backgroundColor: "rgba(0, 0, 0, 0.8)",
-      borderColor: "#334155",
-      style: {
-        color: "#fff",
-      },
-      formatter: function () {
-        return `<b>${this.x}°</b><br/>Max Distance: <b>${this.y?.toFixed(2)} km</b>`;
-      },
-    },
     credits: {
       enabled: false,
+    },
+    tooltip: {
+      backgroundColor: "rgba(0, 0, 0, 0.9)",
+      borderColor: "#ef4444",
+      borderWidth: 2,
+      style: {
+        color: "#fff",
+        fontSize: "13px",
+      },
+      shared: true,
+      formatter: function () {
+        return `<b>${this.x}°</b><br/>Max Distance: <b>${this.points?.[0]?.y?.toFixed(2)} km</b>`;
+      },
     },
   };
 
