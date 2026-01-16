@@ -73,7 +73,7 @@ function AppContent() {
             key={plane.hex}
             aircraft={plane}
             selected={selectedPlane?.hex === plane.hex}
-            onClick={() => handlePlaneClick(plane)}
+            onSelect={() => handlePlaneClick(plane)}
           />
         ))}
         {planes.map((plane) => (
