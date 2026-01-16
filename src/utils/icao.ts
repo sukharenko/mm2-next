@@ -21,7 +21,7 @@ const icaoRanges: ICAORange[] = [
   },
 
   // C - Canada
-  { start: 0xc00000, end: 0xc3ffff, country: "Canada", iso: "CA", flag: "�🇦" },
+  { start: 0xc00000, end: 0xc3ffff, country: "Canada", iso: "CA", flag: "🇨🇦" },
 
   // E - South America
   {
@@ -48,7 +48,7 @@ const icaoRanges: ICAORange[] = [
     end: 0xe9ffff,
     country: "Venezuela",
     iso: "VE",
-    flag: "�🇪",
+    flag: "🇻🇪",
   },
 
   // 0 - Africa
@@ -59,6 +59,13 @@ const icaoRanges: ICAORange[] = [
     country: "Botswana",
     iso: "BW",
     flag: "🇧🇼",
+  },
+  {
+    start: 0x900000,
+    end: 0x9003ff,
+    country: "Cambodia",
+    iso: "KH",
+    flag: "🇰🇭",
   },
   {
     start: 0x00a000,
@@ -77,7 +84,7 @@ const icaoRanges: ICAORange[] = [
   },
   { start: 0x020000, end: 0x027fff, country: "Ghana", iso: "GH", flag: "🇬🇭" },
   { start: 0x028000, end: 0x028fff, country: "Kenya", iso: "KE", flag: "🇰🇪" },
-  { start: 0x030000, end: 0x0303ff, country: "Libya", iso: "LY", flag: "��" },
+  { start: 0x030000, end: 0x0303ff, country: "Libya", iso: "LY", flag: "🇱🇾" },
   { start: 0x032000, end: 0x032fff, country: "Morocco", iso: "MA", flag: "🇲🇦" },
   { start: 0x034000, end: 0x034fff, country: "Nigeria", iso: "NG", flag: "🇳🇬" },
   {
@@ -96,7 +103,7 @@ const icaoRanges: ICAORange[] = [
     flag: "🇹🇿",
   },
   { start: 0x068000, end: 0x068fff, country: "Tunisia", iso: "TN", flag: "🇹🇳" },
-  { start: 0x06a000, end: 0x06afff, country: "Uganda", iso: "UG", flag: "��" },
+  { start: 0x06a000, end: 0x06afff, country: "Uganda", iso: "UG", flag: "🇺🇬" },
 
   // 4 - Europe
   {
@@ -159,18 +166,24 @@ const icaoRanges: ICAORange[] = [
   { start: 0x4ca000, end: 0x4cafff, country: "Croatia", iso: "HR", flag: "🇭🇷" },
   { start: 0x500000, end: 0x5003ff, country: "Ireland", iso: "IE", flag: "🇮🇪" },
   { start: 0x501000, end: 0x5013ff, country: "Iceland", iso: "IS", flag: "🇮🇸" },
-  { start: 0x340000, end: 0x37ffff, country: "Spain", iso: "ES", flag: "��" },
+  { start: 0x340000, end: 0x37ffff, country: "Spain", iso: "ES", flag: "🇪🇸" },
   { start: 0x300000, end: 0x33ffff, country: "Italy", iso: "IT", flag: "🇮🇹" },
-  { start: 0x508000, end: 0x50ffff, country: "Ukraine", iso: "UA", flag: "🇦" },
+  {
+    start: 0x508000,
+    end: 0x50ffff,
+    country: "Ukraine",
+    iso: "UA",
+    flag: "🇺🇦",
+  },
 
   // 6 - Middle East
   { start: 0x600000, end: 0x6003ff, country: "Bahrain", iso: "BH", flag: "🇧🇭" },
   { start: 0x608000, end: 0x608fff, country: "Iraq", iso: "IQ", flag: "🇮🇶" },
   { start: 0x60c000, end: 0x60cfff, country: "Jordan", iso: "JO", flag: "🇯🇴" },
-  { start: 0x610000, end: 0x6103ff, country: "Kuwait", iso: "KW", flag: "��" },
+  { start: 0x610000, end: 0x6103ff, country: "Kuwait", iso: "KW", flag: "🇰🇼" },
   { start: 0x612000, end: 0x6123ff, country: "Lebanon", iso: "LB", flag: "🇱🇧" },
   { start: 0x614000, end: 0x6143ff, country: "Oman", iso: "OM", flag: "🇴🇲" },
-  { start: 0x616000, end: 0x6163ff, country: "Qatar", iso: "QA", flag: "�🇦" },
+  { start: 0x616000, end: 0x6163ff, country: "Qatar", iso: "QA", flag: "🇶🇦" },
   {
     start: 0x618000,
     end: 0x61ffff,
@@ -184,11 +197,11 @@ const icaoRanges: ICAORange[] = [
     end: 0x6243ff,
     country: "United Arab Emirates",
     iso: "AE",
-    flag: "🇦�",
+    flag: "🇦🇪",
   },
   { start: 0x628000, end: 0x6283ff, country: "Yemen", iso: "YE", flag: "🇾🇪" },
-  { start: 0x730000, end: 0x737fff, country: "Israel", iso: "IL", flag: "🇮�" },
-  { start: 0x738000, end: 0x73ffff, country: "Iran", iso: "IR", flag: "��" },
+  { start: 0x730000, end: 0x737fff, country: "Israel", iso: "IL", flag: "🇮🇱" },
+  { start: 0x738000, end: 0x73ffff, country: "Iran", iso: "IR", flag: "🇮🇷" },
 
   // 7 - Asia Pacific
   {
@@ -211,16 +224,23 @@ const icaoRanges: ICAORange[] = [
     end: 0x708fff,
     country: "Sri Lanka",
     iso: "LK",
-    flag: "��",
+    flag: "🇱🇰",
+  },
+  {
+    start: 0x710000,
+    end: 0x717fff,
+    country: "Myanmar",
+    iso: "MM",
+    flag: "🇲🇲",
   },
   { start: 0x800000, end: 0x83ffff, country: "India", iso: "IN", flag: "🇮🇳" },
   { start: 0x840000, end: 0x87ffff, country: "Japan", iso: "JP", flag: "🇯🇵" },
   {
     start: 0x880000,
     end: 0x887fff,
-    country: "Thailand",
-    iso: "TH",
-    flag: "��",
+    country: "Laos",
+    iso: "LA",
+    flag: "🇱🇦",
   },
   {
     start: 0x888000,
@@ -237,7 +257,7 @@ const icaoRanges: ICAORange[] = [
     flag: "🇰🇵",
   },
   { start: 0x898000, end: 0x89ffff, country: "Vietnam", iso: "VN", flag: "🇻🇳" },
-  { start: 0x8a0000, end: 0x8a7fff, country: "China", iso: "CN", flag: "🇨�" },
+  { start: 0x8a0000, end: 0x8a7fff, country: "China", iso: "CN", flag: "🇨🇳" },
   {
     start: 0x900000,
     end: 0x9fffff,
@@ -250,7 +270,7 @@ const icaoRanges: ICAORange[] = [
     end: 0xc87fff,
     country: "New Zealand",
     iso: "NZ",
-    flag: "��",
+    flag: "🇳🇿",
   },
   {
     start: 0x750000,
@@ -278,7 +298,7 @@ const icaoRanges: ICAORange[] = [
     end: 0x76ffff,
     country: "Philippines",
     iso: "PH",
-    flag: "�🇭",
+    flag: "🇵🇭",
   },
   {
     start: 0x770000,
@@ -295,13 +315,13 @@ const icaoRanges: ICAORange[] = [
     end: 0x0a7fff,
     country: "Cayman Islands",
     iso: "KY",
-    flag: "��",
+    flag: "🇰🇾",
   },
 
   // D - Mexico & Central America
   { start: 0xd00000, end: 0xd7ffff, country: "Mexico", iso: "MX", flag: "🇲🇽" },
-  { start: 0x0c0000, end: 0x0c3fff, country: "Cuba", iso: "CU", flag: "��" },
-  { start: 0x0c8000, end: 0x0c8fff, country: "Jamaica", iso: "JM", flag: "🇯�" },
+  { start: 0x0c0000, end: 0x0c3fff, country: "Cuba", iso: "CU", flag: "🇨🇺" },
+  { start: 0x0c8000, end: 0x0c8fff, country: "Jamaica", iso: "JM", flag: "🇯🇲" },
   {
     start: 0x0cc000,
     end: 0x0ccfff,
@@ -309,7 +329,7 @@ const icaoRanges: ICAORange[] = [
     iso: "CR",
     flag: "🇨🇷",
   },
-  { start: 0x0d0000, end: 0x0d0fff, country: "Panama", iso: "PA", flag: "��" },
+  { start: 0x0d0000, end: 0x0d0fff, country: "Panama", iso: "PA", flag: "🇵🇦" },
   {
     start: 0x0d4000,
     end: 0x0d4fff,
@@ -328,7 +348,7 @@ export function getCountryFromHex(hex: string): {
   const hexNum = parseInt(hex, 16);
 
   if (isNaN(hexNum)) {
-    return { name: "Unknown", flag: "�️", iso: "" };
+    return { name: "Unknown", flag: "🏳️", iso: "" };
   }
 
   // Find matching range
