@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { MapContainer } from "@/components/Map/MapContainer";
 import { AircraftMarker } from "@/components/Map/AircraftMarker";
+import { TrajectoryLine } from "@/components/Map/TrajectoryLine";
 import { RangeRings } from "@/components/Map/RangeRings";
 import { useAircraft, Aircraft } from "@/hooks/useAircraft";
 import { AircraftDetailPanel } from "@/components/AircraftDetailPanel";
@@ -73,6 +74,14 @@ function AppContent() {
             aircraft={plane}
             selected={selectedPlane?.hex === plane.hex}
             onClick={() => handlePlaneClick(plane)}
+          />
+        ))}
+        {planes.map((plane) => (
+          <TrajectoryLine
+            key={`trace-${plane.hex}`}
+            path={plane.trace?.map((p) => ({ lat: p.lat, lng: p.lon })) || []}
+            color={selectedPlane?.hex === plane.hex ? "#fbbf24" : "#64748b"}
+            opacity={selectedPlane?.hex === plane.hex ? 0.8 : 0.4}
           />
         ))}
       </MapContainer>

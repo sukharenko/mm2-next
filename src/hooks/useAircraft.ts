@@ -14,7 +14,7 @@ export interface Aircraft {
   vertRate?: number;
   squawk?: string;
   category?: string;
-  trace?: [number, number][];
+  trace?: { lat: number; lon: number }[];
   lastSeen: number;
   messages: number;
 }

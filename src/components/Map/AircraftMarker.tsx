@@ -1,6 +1,7 @@
 "use client";
 
 import { AdvancedMarker } from "@vis.gl/react-google-maps";
+import { useMemo } from "react";
 import { Aircraft } from "@/hooks/useAircraft";
 import { Plane } from "lucide-react";
 import clsx from "clsx";
@@ -18,7 +19,19 @@ export function AircraftMarker({
 }) {
   const { formatAltitude } = useSettings();
 
-  if (!aircraft.lat || !aircraft.lon) return null;
+  const position = useMemo(() => {
+    if (aircraft.lat && aircraft.lon) {
+      return { lat: aircraft.lat, lng: aircraft.lon };
+    }
+    // Fallback to last known position from trace
+    if (aircraft.trace && aircraft.trace.length > 0) {
+      const last = aircraft.trace[aircraft.trace.length - 1];
+      return { lat: last.lat, lng: last.lon };
+    }
+    return null; // Or some default/error handling
+  }, [aircraft.lat, aircraft.lon, aircraft.trace]);
+
+  if (!position) return null;
 
   const isClimbing = (aircraft.vertRate || 0) > 100;
   const isDescending = (aircraft.vertRate || 0) < -100;
@@ -27,12 +40,12 @@ export function AircraftMarker({
     <>
       {selected && aircraft.trace && aircraft.trace.length > 1 && (
         <TrajectoryLine
-          path={aircraft.trace.map((p) => ({ lat: p[0], lng: p[1] }))}
+          path={aircraft.trace.map((p) => ({ lat: p.lat, lng: p.lon }))}
           color="#38bdf8"
         />
       )}
       <AdvancedMarker
-        position={{ lat: aircraft.lat, lng: aircraft.lon }}
+        position={position}
         onClick={onClick}
         className="group"
         zIndex={selected ? 50 : 1}
